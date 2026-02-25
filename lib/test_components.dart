@@ -18,6 +18,7 @@ class _TestComponentsState extends State<TestComponents> {
   final TextEditingController _assetIdController = TextEditingController();
   final TextEditingController _employeeIdController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  String? _uploadedImagePath;
 
   @override
   void dispose() {
@@ -136,7 +137,23 @@ class _TestComponentsState extends State<TestComponents> {
                           onTap: () {
                             debugPrint('Upload card tapped');
                           },
+                          onImageSelected: (file) {
+                            setState(() {
+                              _uploadedImagePath = file?.path;
+                            });
+                            debugPrint('Selected image: ${file?.path}');
+                          },
+                          onPickError: (message) {
+                            debugPrint('Upload error: $message');
+                          },
                         ),
+                        if (_uploadedImagePath != null) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'Image path: $_uploadedImagePath',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ],
                       ],
                     ),
                   ),
