@@ -5,6 +5,7 @@ import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart
 import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart';
 import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 import 'package:flutter_assignment_group/components/cards/recent_activity_card.dart';
+import 'package:flutter_assignment_group/components/cards/upload_img_card.dart';
 
 class TestComponents extends StatefulWidget {
   const TestComponents({super.key});
@@ -128,6 +129,12 @@ class _TestComponentsState extends State<TestComponents> {
                           statusColor: const Color(0xFF22A447),
                           onTap: () {
                             debugPrint('Card tapped');
+                          },
+                        ),
+                        const SizedBox(height: 20),
+                        UploadImgCard(
+                          onTap: () {
+                            debugPrint('Upload card tapped');
                           },
                         ),
                       ],
