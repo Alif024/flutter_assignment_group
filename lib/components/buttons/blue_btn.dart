@@ -14,6 +14,11 @@ class BlueBtn extends StatelessWidget {
   final double height;
   final double borderRadius;
 
+  double get _fontSize {
+    final dynamicSize = height * 0.3;
+    return dynamicSize.clamp(14.0, 20.0);
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -29,11 +34,12 @@ class BlueBtn extends StatelessWidget {
             borderRadius: BorderRadius.circular(borderRadius),
           ),
         ),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 24 / 1.5,
-            fontWeight: FontWeight.w500,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            text,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: _fontSize, fontWeight: FontWeight.w500),
           ),
         ),
       ),
