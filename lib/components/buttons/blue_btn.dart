@@ -6,18 +6,13 @@ class BlueBtn extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.height = 60,
-    this.borderRadius = 10,
+    this.borderRadius = 14,
   });
 
   final String text;
   final VoidCallback? onPressed;
   final double height;
   final double borderRadius;
-
-  double get _fontSize {
-    final dynamicSize = height * 0.3;
-    return dynamicSize.clamp(14.0, 20.0);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +34,7 @@ class BlueBtn extends StatelessWidget {
           child: Text(
             text,
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: _fontSize, fontWeight: FontWeight.w500),
+            style: TextStyle(fontSize: 32 / 1.5, fontWeight: FontWeight.w600),
           ),
         ),
       ),

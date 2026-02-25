@@ -57,11 +57,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 20),
                   FilledBtnIcon(
                     text: 'Scan QR Code',
-                    icon: const Icon(
-                      Icons.qr_code_2_rounded,
-                      size: 28,
-                      color: Colors.white,
-                    ),
+                    icon: Icons.qr_code_scanner,
                     color: FilledBtnColor.green,
                     onPressed: () {
                       // เขียน function ภายนอกได้ที่นี่

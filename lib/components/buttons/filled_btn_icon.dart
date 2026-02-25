@@ -16,7 +16,7 @@ class FilledBtnIcon extends StatelessWidget {
 
   final String text;
   final VoidCallback? onPressed;
-  final Widget? icon;
+  final IconData icon;
   final double height;
   final double borderRadius;
   final double iconTextSpacing;
@@ -52,13 +52,13 @@ class FilledBtnIcon extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            icon!,
+            Icon(icon, size: 28, color: Colors.white),
             SizedBox(width: iconTextSpacing),
             Text(
               text,
               style: const TextStyle(
-                fontSize: 24 / 1.5,
-                fontWeight: FontWeight.w600,
+                fontSize: 28 / 1.5,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
