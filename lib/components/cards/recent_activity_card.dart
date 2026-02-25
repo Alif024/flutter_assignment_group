@@ -72,7 +72,7 @@ class RecentActivityCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                           color: Color(0xFF151C33),
                           height: 1.1,
                         ),
