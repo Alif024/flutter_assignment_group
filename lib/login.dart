@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_assignment_group/components/buttons/blue_btn.dart';
+import 'package:flutter_assignment_group/components/buttons/blue_btn_icon.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -53,6 +54,18 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   const SizedBox(height: 30),
                   BlueBtn(text: 'Login', onPressed: _handleLogin),
+                  const SizedBox(height: 20),
+                  BlueBtnIcon(
+                    text: 'Scan QR Code',
+                    icon: const Icon(
+                      Icons.qr_code_2_rounded,
+                      size: 28,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      // เขียน function ภายนอกได้ที่นี่
+                    },
+                  ),
                 ],
               ),
             ),
