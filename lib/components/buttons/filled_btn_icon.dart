@@ -35,33 +35,47 @@ class FilledBtnIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: height,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _backgroundColor,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius),
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(borderRadius),
+        boxShadow: [
+          BoxShadow(
+            // ignore: deprecated_member_use
+            color: _backgroundColor.withOpacity(0.3),
+            offset: const Offset(0, 4),
+            blurRadius: 12,
+            spreadRadius: 0,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 28, color: Colors.white),
-            SizedBox(width: iconTextSpacing),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 28 / 1.5,
-                fontWeight: FontWeight.w500,
-              ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: height,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: _backgroundColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(borderRadius),
             ),
-          ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 28, color: Colors.white),
+              SizedBox(width: iconTextSpacing),
+              Text(
+                text,
+                style: const TextStyle(
+                  fontSize: 28 / 1.5,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
