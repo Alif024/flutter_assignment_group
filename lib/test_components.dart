@@ -5,14 +5,14 @@ import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart
 import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart';
 import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class TestComponents extends StatefulWidget {
+  const TestComponents({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<TestComponents> createState() => _TestComponentsState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _TestComponentsState extends State<TestComponents> {
   final TextEditingController _assetIdController = TextEditingController();
   final TextEditingController _employeeIdController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -104,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
                     OutlinedBtnIcon(
                       text: 'Login with Google',
                       icon: Icons.login,
-                      fontColor: OutlinedBtnFontColor.gray,
+                      fontColor: OutlinedBtnFontColor.red,
                       onPressed: () {
                         // เขียน function ภายนอกได้ที่นี่
                       },

@@ -42,7 +42,7 @@ class OutlinedBtnIcon extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: const Color(0xFFF8FAFC),
-          side: const BorderSide(color: Color(0xFFCBD5E1), width: 2),
+          side: const BorderSide(color: Color(0xFFCBD5E1), width: 1.3),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(borderRadius),
           ),
