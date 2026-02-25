@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 
-class BlueBtnIcon extends StatelessWidget {
-  const BlueBtnIcon({
+enum FilledBtnColor { blue, green, gray }
+
+class FilledBtnIcon extends StatelessWidget {
+  const FilledBtnIcon({
     super.key,
     required this.text,
     required this.onPressed,
-    this.icon,
+    required this.icon,
     this.height = 60,
     this.borderRadius = 14,
     this.iconTextSpacing = 14,
+    this.color = FilledBtnColor.blue,
   });
 
   final String text;
@@ -17,6 +20,18 @@ class BlueBtnIcon extends StatelessWidget {
   final double height;
   final double borderRadius;
   final double iconTextSpacing;
+  final FilledBtnColor color;
+
+  Color get _backgroundColor {
+    switch (color) {
+      case FilledBtnColor.blue:
+        return const Color(0xFF2563EB);
+      case FilledBtnColor.green:
+        return const Color(0xFF16A34A);
+      case FilledBtnColor.gray:
+        return const Color(0xFF334155);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +41,7 @@ class BlueBtnIcon extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2563EB),
+          backgroundColor: _backgroundColor,
           foregroundColor: Colors.white,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -37,7 +52,8 @@ class BlueBtnIcon extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (icon != null) ...[icon!, SizedBox(width: iconTextSpacing)],
+            icon!,
+            SizedBox(width: iconTextSpacing),
             Text(
               text,
               style: const TextStyle(

@@ -5,7 +5,7 @@ class BlueBtn extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.height = 50,
+    this.height = 60,
     this.borderRadius = 10,
   });
 
