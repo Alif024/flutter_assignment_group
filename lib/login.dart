@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_assignment_group/components/buttons/blue_btn.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
+import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -59,6 +60,15 @@ class _LoginPageState extends State<LoginPage> {
                     text: 'Scan QR Code',
                     icon: Icons.qr_code_scanner,
                     color: FilledBtnColor.green,
+                    onPressed: () {
+                      // เขียน function ภายนอกได้ที่นี่
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  OutlinedBtnIcon(
+                    text: 'Login with Google',
+                    icon: Icons.login,
+                    fontColor: OutlinedBtnFontColor.gray,
                     onPressed: () {
                       // เขียน function ภายนอกได้ที่นี่
                     },
