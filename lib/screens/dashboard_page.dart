@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 import 'package:flutter_assignment_group/components/cards/dashboard_stat_card.dart';
@@ -10,10 +10,12 @@ class DashboardPage extends StatelessWidget {
     super.key,
     required this.onOpenDetail,
     required this.onAddAsset,
+    required this.onScanQr,
   });
 
   final VoidCallback onOpenDetail;
   final VoidCallback onAddAsset;
+  final VoidCallback onScanQr;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +179,7 @@ class DashboardPage extends StatelessWidget {
                     const SizedBox(height: 12),
                     FilledBtnIcon(
                       text: 'Scan QR Code',
-                      onPressed: () {},
+                      onPressed: onScanQr,
                       icon: Icons.qr_code_scanner,
                     ),
                     const SizedBox(height: 12),
@@ -266,4 +268,3 @@ class DashboardPage extends StatelessWidget {
     );
   }
 }
-

@@ -1,9 +1,10 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/screens/add_asset_page.dart';
 import 'package:flutter_assignment_group/screens/asset_details_page.dart';
 import 'package:flutter_assignment_group/screens/dashboard_page.dart';
 import 'package:flutter_assignment_group/screens/edit_asset_page.dart';
 import 'package:flutter_assignment_group/screens/login_page.dart';
+import 'package:flutter_assignment_group/screens/scan_qr_page.dart';
 
 class AssetTrackApp extends StatefulWidget {
   const AssetTrackApp({super.key});
@@ -12,7 +13,7 @@ class AssetTrackApp extends StatefulWidget {
   State<AssetTrackApp> createState() => _AssetTrackAppState();
 }
 
-enum _AppPage { login, dashboard, details, addAsset, editAsset }
+enum _AppPage { login, dashboard, details, addAsset, editAsset, scanQr }
 
 class _AssetTrackAppState extends State<AssetTrackApp> {
   _AppPage _currentPage = _AppPage.login;
@@ -40,6 +41,7 @@ class _AssetTrackAppState extends State<AssetTrackApp> {
           key: const ValueKey('dashboard_page'),
           onOpenDetail: () => setState(() => _currentPage = _AppPage.details),
           onAddAsset: () => setState(() => _currentPage = _AppPage.addAsset),
+          onScanQr: () => setState(() => _currentPage = _AppPage.scanQr),
         );
       case _AppPage.details:
         return AssetDetailsPage(
@@ -57,7 +59,11 @@ class _AssetTrackAppState extends State<AssetTrackApp> {
           key: const ValueKey('edit_asset_page'),
           onBack: () => setState(() => _currentPage = _AppPage.details),
         );
+      case _AppPage.scanQr:
+        return ScanQrPage(
+          key: const ValueKey('scan_qr_page'),
+          onBack: () => setState(() => _currentPage = _AppPage.dashboard),
+        );
     }
   }
 }
-
