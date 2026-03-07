@@ -56,6 +56,8 @@ class FilledBtnIcon extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: _backgroundColor,
             foregroundColor: Colors.white,
+            disabledBackgroundColor: _backgroundColor,
+            disabledForegroundColor: Colors.white,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24),
             shape: RoundedRectangleBorder(
@@ -81,3 +83,4 @@ class FilledBtnIcon extends StatelessWidget {
     );
   }
 }
+
