@@ -217,6 +217,116 @@ class AssetDetailsPage extends StatelessWidget {
     }
   }
 
+  Future<void> _showDeleteSuccessDialog(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return Dialog(
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 62,
+                  height: 62,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFFF6B6B), Color(0xFFFF0000)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color.fromRGBO(239, 68, 68, 0.35),
+                        offset: Offset(0, 8),
+                        blurRadius: 16,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Colors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Deleted Successfully',
+                  style: TextStyle(
+                    fontSize: 34 / 1.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Your item has been permanently removed\nand cannot be recovered.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 21 / 1.5,
+                    color: Color(0xFF4B5563),
+                    height: 1.45,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(48),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    icon: const Icon(Icons.check, size: 18),
+                    label: const Text(
+                      'Done',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(),
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF374151),
+                      minimumSize: const Size.fromHeight(48),
+                      side: const BorderSide(color: Color(0xFFD1D5DB)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'View Details',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -347,11 +457,11 @@ class AssetDetailsPage extends StatelessWidget {
                 onPressed: () => _showUpdateStatusDialog(context),
               ),
               const SizedBox(height: 12),
-              const OutlinedBtnIcon(
+              OutlinedBtnIcon(
                 text: 'Delete Asset',
                 icon: Icons.delete,
                 fontColor: OutlinedBtnFontColor.red,
-                onPressed: null,
+                onPressed: () => _showDeleteSuccessDialog(context),
               ),
             ],
           ),
