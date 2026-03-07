@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
@@ -14,6 +14,208 @@ class AssetDetailsPage extends StatelessWidget {
 
   final VoidCallback onBack;
   final VoidCallback onEdit;
+
+  Future<void> _showUpdateStatusDialog(BuildContext context) async {
+    final noteController = TextEditingController();
+    var selectedStatus = _AssetStatus.normal;
+
+    try {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              final noteLength = noteController.text.length;
+
+              return Dialog(
+                insetPadding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 24,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Update Status',
+                              style: TextStyle(
+                                fontSize: 30 / 1.5,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF111827),
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            icon: const Icon(
+                              Icons.close,
+                              color: Color(0xFF64748B),
+                            ),
+                            tooltip: 'Close',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        'Change the current status of this asset',
+                        style: TextStyle(
+                          fontSize: 22 / 1.5,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      _StatusOptionTile(
+                        title: 'Normal',
+                        description: 'Asset is functioning properly',
+                        icon: Icons.check_circle,
+                        iconColor: const Color(0xFF16A34A),
+                        selected: selectedStatus == _AssetStatus.normal,
+                        onTap: () {
+                          setState(() {
+                            selectedStatus = _AssetStatus.normal;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      _StatusOptionTile(
+                        title: 'Under Repair',
+                        description: 'Asset is currently being serviced',
+                        icon: Icons.build,
+                        iconColor: const Color(0xFF2563EB),
+                        selected: selectedStatus == _AssetStatus.underRepair,
+                        onTap: () {
+                          setState(() {
+                            selectedStatus = _AssetStatus.underRepair;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      _StatusOptionTile(
+                        title: 'Disposed',
+                        description: 'Asset has been removed from inventory',
+                        icon: Icons.delete,
+                        iconColor: const Color(0xFFDC2626),
+                        selected: selectedStatus == _AssetStatus.disposed,
+                        onTap: () {
+                          setState(() {
+                            selectedStatus = _AssetStatus.disposed;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 14),
+                      const Text(
+                        'Notes (Optional)',
+                        style: TextStyle(
+                          fontSize: 24 / 1.5,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: noteController,
+                        maxLength: 200,
+                        minLines: 3,
+                        maxLines: 3,
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText:
+                              'Add any additional information about this status change...',
+                          counterText: '',
+                          filled: true,
+                          fillColor: const Color(0xFFF8FAFC),
+                          contentPadding: const EdgeInsets.all(12),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFCBD5E1),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Color(0xFF2563EB),
+                              width: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Max $noteLength/200 characters',
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: const Color(0xFF111827),
+                                minimumSize: const Size.fromHeight(48),
+                                side: const BorderSide(
+                                  color: Color(0xFFCBD5E1),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(dialogContext).pop();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF2563EB),
+                                foregroundColor: Colors.white,
+                                minimumSize: const Size.fromHeight(48),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: const Text(
+                                'Confirm Update',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      );
+    } finally {
+      noteController.dispose();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -138,11 +340,11 @@ class AssetDetailsPage extends StatelessWidget {
                 onPressed: onEdit,
               ),
               const SizedBox(height: 12),
-              const FilledBtnIcon(
+              FilledBtnIcon(
                 text: 'Update Status',
                 icon: Icons.autorenew,
                 color: FilledBtnColor.gray,
-                onPressed: null,
+                onPressed: () => _showUpdateStatusDialog(context),
               ),
               const SizedBox(height: 12),
               const OutlinedBtnIcon(
@@ -159,3 +361,101 @@ class AssetDetailsPage extends StatelessWidget {
   }
 }
 
+enum _AssetStatus { normal, underRepair, disposed }
+
+class _StatusOptionTile extends StatelessWidget {
+  const _StatusOptionTile({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.iconColor,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String description;
+  final IconData icon;
+  final Color iconColor;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 140),
+                width: 19,
+                height: 19,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFFCBD5E1),
+                    width: 1.5,
+                  ),
+                ),
+                child: selected
+                    ? const Center(
+                        child: CircleAvatar(
+                          radius: 5,
+                          backgroundColor: Color(0xFF2563EB),
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(icon, size: 16, color: iconColor),
+                      const SizedBox(width: 6),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 23 / 1.5,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    description,
+                    style: const TextStyle(
+                      fontSize: 20 / 1.5,
+                      color: Color(0xFF64748B),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
