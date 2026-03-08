@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AssetDetailRow extends StatelessWidget {
   const AssetDetailRow({
@@ -30,10 +30,7 @@ class AssetDetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF374151),
-                ),
+                style: const TextStyle(fontSize: 15, color: Color(0xFF374151)),
               ),
               const SizedBox(height: 3),
               Text(
@@ -52,4 +49,3 @@ class AssetDetailRow extends StatelessWidget {
     );
   }
 }
-

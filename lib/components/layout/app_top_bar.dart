@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
   const AppTopBar({
@@ -42,14 +42,10 @@ class AppTopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         if (action != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: action,
-          )
+          Padding(padding: const EdgeInsets.only(right: 8), child: action)
         else
           const SizedBox(width: 44),
       ],
     );
   }
 }
-

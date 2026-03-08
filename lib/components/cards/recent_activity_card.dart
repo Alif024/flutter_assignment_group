@@ -67,7 +67,7 @@ class RecentActivityCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        '$activityText • $timeText',
+                        '$activityText - $timeText',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(

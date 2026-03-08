@@ -11,7 +11,9 @@ class InputTextIcon extends StatefulWidget {
     required this.icon,
     this.iconPosition = InputIconPosition.left,
     this.onChanged,
+    this.onSubmitted,
     this.keyboardType,
+    this.textInputAction,
     this.obscureText = false,
   });
 
@@ -21,7 +23,9 @@ class InputTextIcon extends StatefulWidget {
   final IconData icon;
   final InputIconPosition iconPosition;
   final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
   final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
   final bool obscureText;
 
   @override
@@ -111,7 +115,10 @@ class _InputTextIconState extends State<InputTextIcon> {
           controller: widget.controller,
           focusNode: _focusNode,
           onChanged: widget.onChanged,
+          onSubmitted: widget.onSubmitted,
+          onTapOutside: (_) => _focusNode.unfocus(),
           keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
           obscureText: widget.obscureText,
           decoration: decoration,
         ),

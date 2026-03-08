@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class DashboardStatCard extends StatelessWidget {
   const DashboardStatCard({
@@ -56,4 +56,3 @@ class DashboardStatCard extends StatelessWidget {
     );
   }
 }
-

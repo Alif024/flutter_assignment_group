@@ -1,27 +1,72 @@
-﻿import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/blue_btn.dart';
-import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart';
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
+import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key, required this.onLogin});
 
-  final VoidCallback onLogin;
+  final Future<void> Function(String username, String password) onLogin;
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController _employeeIdController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoggingIn = false;
 
   @override
   void dispose() {
-    _employeeIdController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _submitLogin() async {
+    if (_isLoggingIn) {
+      return;
+    }
+
+    _dismissKeyboard();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    if (!mounted) {
+      return;
+    }
+
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (username.isEmpty || password.isEmpty) {
+      _showMessage('Please enter both username and password.');
+      return;
+    }
+
+    setState(() => _isLoggingIn = true);
+    try {
+      await widget.onLogin(username, password);
+    } catch (error) {
+      _showMessage(error.toString().replaceFirst('Bad state: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoggingIn = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   @override
@@ -30,6 +75,7 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: const Color(0xFFE5E7EB),
       body: SafeArea(
         child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
           child: Column(
             children: [
@@ -79,23 +125,34 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 20),
                     InputTextIcon(
-                      controller: _employeeIdController,
-                      label: 'Employee ID',
-                      hintText: 'Enter your ID',
+                      controller: _usernameController,
+                      label: 'Username',
+                      hintText: 'Enter your username',
                       icon: Icons.person,
                       iconPosition: InputIconPosition.right,
+                      textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 16),
                     InputTextIcon(
                       controller: _passwordController,
                       label: 'Password',
-                      hintText: 'Enter your current password',
+                      hintText: 'Enter your password',
                       icon: Icons.visibility_off_outlined,
                       iconPosition: InputIconPosition.right,
                       obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submitLogin(),
                     ),
                     const SizedBox(height: 22),
-                    BlueBtn(text: 'Login', onPressed: widget.onLogin),
+                    BlueBtn(
+                      text: _isLoggingIn ? 'Logging in...' : 'Login',
+                      onPressed: _isLoggingIn ? null : _submitLogin,
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Demo: username EMP-1908 / password 123456',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    ),
                     const SizedBox(height: 18),
                     Center(
                       child: GestureDetector(
@@ -133,7 +190,7 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Icon(Icons.verified_user_outlined, size: 16),
                   SizedBox(width: 6),
-                  Text('Secure Login • Version 2.1.0'),
+                  Text('Secure Login - Version 2.1.0'),
                 ],
               ),
             ],
