@@ -2,9 +2,53 @@ import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 
 class ScanQrPage extends StatelessWidget {
-  const ScanQrPage({super.key, required this.onBack});
+  const ScanQrPage({
+    super.key,
+    required this.onBack,
+    required this.onOpenAsset,
+  });
 
   final VoidCallback onBack;
+  final ValueChanged<String> onOpenAsset;
+
+  Future<void> _showManualEntryDialog(BuildContext context) async {
+    final controller = TextEditingController();
+    try {
+      await showDialog<void>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Enter Asset ID'),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                hintText: 'e.g., AST-2024-0156',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final assetId = controller.text.trim();
+                  if (assetId.isEmpty) {
+                    return;
+                  }
+                  Navigator.of(context).pop();
+                  onOpenAsset(assetId);
+                },
+                child: const Text('Open'),
+              ),
+            ],
+          );
+        },
+      );
+    } finally {
+      controller.dispose();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +102,7 @@ class ScanQrPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     const Text(
-                      'Position the QR code within the frame.\nScan will happen automatically.',
+                      'Camera scanning can be added later.\nUse manual entry now.',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 14),
                     ),
@@ -101,54 +145,6 @@ class ScanQrPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Tap to toggle flash',
-                      style: TextStyle(color: Color(0xFFE2E8F0), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: const Color(0xFFD1D5DB)),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          size: 16,
-                          color: Color(0xFF2563EB),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          'Scanning Tips',
-                          style: TextStyle(
-                            color: Color(0xFF111827),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      '- Hold steady for 2-3 seconds\n'
-                      '- Ensure good lighting conditions\n'
-                      '- Keep QR code within the frame',
-                      style: TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 13,
-                        height: 1.35,
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -156,7 +152,7 @@ class ScanQrPage extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () {},
+                  onPressed: () => _showManualEntryDialog(context),
                   icon: const Icon(Icons.keyboard_alt_rounded, size: 18),
                   label: const Text('Enter Asset ID Manually'),
                   style: OutlinedButton.styleFrom(

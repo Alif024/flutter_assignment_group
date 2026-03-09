@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class SurfaceCard extends StatelessWidget {
   const SurfaceCard({
@@ -35,4 +35,3 @@ class SurfaceCard extends StatelessWidget {
     );
   }
 }
-

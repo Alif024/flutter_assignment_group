@@ -4,20 +4,37 @@ import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.da
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/components/layout/asset_detail_row.dart';
+import 'package:flutter_assignment_group/data/firestore_repository.dart';
+import 'package:flutter_assignment_group/models/asset_record.dart';
 
-class AssetDetailsPage extends StatelessWidget {
+class AssetDetailsPage extends StatefulWidget {
   const AssetDetailsPage({
     super.key,
+    required this.repository,
+    required this.assetCode,
+    required this.actorEmployeeId,
     required this.onBack,
     required this.onEdit,
+    required this.onDeleted,
   });
 
+  final FirestoreRepository repository;
+  final String assetCode;
+  final String actorEmployeeId;
   final VoidCallback onBack;
-  final VoidCallback onEdit;
+  final ValueChanged<String> onEdit;
+  final VoidCallback onDeleted;
 
-  Future<void> _showUpdateStatusDialog(BuildContext context) async {
+  @override
+  State<AssetDetailsPage> createState() => _AssetDetailsPageState();
+}
+
+class _AssetDetailsPageState extends State<AssetDetailsPage> {
+  bool _isProcessing = false;
+
+  Future<void> _showUpdateStatusDialog(AssetRecord asset) async {
     final noteController = TextEditingController();
-    var selectedStatus = _AssetStatus.normal;
+    var selectedStatus = asset.status;
 
     try {
       await showDialog<void>(
@@ -78,12 +95,8 @@ class AssetDetailsPage extends StatelessWidget {
                         description: 'Asset is functioning properly',
                         icon: Icons.check_circle,
                         iconColor: const Color(0xFF16A34A),
-                        selected: selectedStatus == _AssetStatus.normal,
-                        onTap: () {
-                          setState(() {
-                            selectedStatus = _AssetStatus.normal;
-                          });
-                        },
+                        selected: selectedStatus == 'normal',
+                        onTap: () => setState(() => selectedStatus = 'normal'),
                       ),
                       const SizedBox(height: 10),
                       _StatusOptionTile(
@@ -91,12 +104,9 @@ class AssetDetailsPage extends StatelessWidget {
                         description: 'Asset is currently being serviced',
                         icon: Icons.build,
                         iconColor: const Color(0xFF2563EB),
-                        selected: selectedStatus == _AssetStatus.underRepair,
-                        onTap: () {
-                          setState(() {
-                            selectedStatus = _AssetStatus.underRepair;
-                          });
-                        },
+                        selected: selectedStatus == 'under_repair',
+                        onTap: () =>
+                            setState(() => selectedStatus = 'under_repair'),
                       ),
                       const SizedBox(height: 10),
                       _StatusOptionTile(
@@ -104,12 +114,9 @@ class AssetDetailsPage extends StatelessWidget {
                         description: 'Asset has been removed from inventory',
                         icon: Icons.delete,
                         iconColor: const Color(0xFFDC2626),
-                        selected: selectedStatus == _AssetStatus.disposed,
-                        onTap: () {
-                          setState(() {
-                            selectedStatus = _AssetStatus.disposed;
-                          });
-                        },
+                        selected: selectedStatus == 'disposed',
+                        onTap: () =>
+                            setState(() => selectedStatus = 'disposed'),
                       ),
                       const SizedBox(height: 14),
                       const Text(
@@ -184,8 +191,13 @@ class AssetDetailsPage extends StatelessWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 Navigator.of(dialogContext).pop();
+                                await _updateStatus(
+                                  assetCode: asset.assetCode,
+                                  status: selectedStatus,
+                                  note: noteController.text.trim(),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF2563EB),
@@ -217,109 +229,252 @@ class AssetDetailsPage extends StatelessWidget {
     }
   }
 
-  Future<void> _showDeleteSuccessDialog(BuildContext context) async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (dialogContext) {
-        return Dialog(
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 24,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 62,
-                  height: 62,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [Color(0xFFFF6B6B), Color(0xFFFF0000)],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color.fromRGBO(239, 68, 68, 0.35),
-                        offset: Offset(0, 8),
-                        blurRadius: 16,
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.delete_outline_rounded,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+  Future<void> _updateStatus({
+    required String assetCode,
+    required String status,
+    required String note,
+  }) async {
+    setState(() => _isProcessing = true);
+    try {
+      await widget.repository.updateAssetStatus(
+        assetCode: assetCode,
+        status: status,
+        note: note,
+        actorEmployeeId: widget.actorEmployeeId,
+      );
+      _showMessage('Status updated.');
+    } catch (error) {
+      _showMessage(error.toString().replaceFirst('Bad state: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(AssetRecord asset) async {
+    final confirmed =
+        await showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Delete Asset'),
+              content: Text('Delete ${asset.name} permanently?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Deleted Successfully',
-                  style: TextStyle(
-                    fontSize: 34 / 1.5,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF111827),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Your item has been permanently removed\nand cannot be recovered.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 21 / 1.5,
-                    color: Color(0xFF4B5563),
-                    height: 1.45,
-                  ),
-                ),
-                const SizedBox(height: 18),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2563EB),
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(48),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text(
-                      'Done',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.of(dialogContext).pop(),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF374151),
-                      minimumSize: const Size.fromHeight(48),
-                      side: const BorderSide(color: Color(0xFFD1D5DB)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: const Text(
-                      'View Details',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Delete'),
                 ),
               ],
+            );
+          },
+        ) ??
+        false;
+
+    if (!confirmed) {
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+    try {
+      await widget.repository.deleteAsset(
+        asset.assetCode,
+        actorEmployeeId: widget.actorEmployeeId,
+      );
+      if (!mounted) {
+        return;
+      }
+      widget.onDeleted();
+    } catch (error) {
+      _showMessage(error.toString().replaceFirst('Bad state: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<AssetRecord?>(
+      stream: widget.repository.watchAsset(widget.assetCode),
+      builder: (context, snapshot) {
+        final asset = snapshot.data;
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            asset == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (asset == null) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFE5E7EB),
+            appBar: AppTopBar(title: 'Asset Details', onBack: widget.onBack),
+            body: const Center(child: Text('Asset not found.')),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFE5E7EB),
+          appBar: AppTopBar(
+            title: 'Asset Details',
+            onBack: widget.onBack,
+            action: IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onPressed: () {},
+            ),
+          ),
+          body: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
+              child: Column(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      asset.imageUrl.isNotEmpty
+                          ? asset.imageUrl
+                          : 'https://images.unsplash.com/photo-1593642634367-d91a135587b5?w=1200',
+                      height: 280,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 280,
+                        color: const Color(0xFFD1D5DB),
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.laptop_mac, size: 56),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SurfaceCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    asset.name,
+                                    style: const TextStyle(
+                                      fontSize: 56 / 1.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF111827),
+                                      height: 1.1,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    asset.assetCode,
+                                    style: const TextStyle(
+                                      fontSize: 18 / 1.5,
+                                      color: Color(0xFF1F2937),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              _statusLabel(asset.status),
+                              style: TextStyle(
+                                color: _statusColor(asset.status),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 36 / 1.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        AssetDetailRow(
+                          icon: _iconForType(asset.type),
+                          label: 'Asset Type',
+                          value: asset.type,
+                        ),
+                        const SizedBox(height: 12),
+                        AssetDetailRow(
+                          icon: Icons.sell,
+                          label: 'Brand',
+                          value: asset.brand,
+                        ),
+                        const SizedBox(height: 12),
+                        AssetDetailRow(
+                          icon: Icons.format_list_bulleted,
+                          label: 'Description',
+                          value: asset.description.isEmpty
+                              ? '-'
+                              : asset.description,
+                        ),
+                        const SizedBox(height: 12),
+                        AssetDetailRow(
+                          icon: Icons.location_on,
+                          label: 'Location',
+                          value: asset.location,
+                        ),
+                        const SizedBox(height: 12),
+                        AssetDetailRow(
+                          icon: Icons.calendar_month,
+                          label: 'Purchase Date',
+                          value: asset.purchaseDate == null
+                              ? '-'
+                              : _formatDate(asset.purchaseDate!),
+                        ),
+                        const SizedBox(height: 12),
+                        AssetDetailRow(
+                          icon: Icons.check_circle,
+                          label: 'Current Status',
+                          value: _statusLabel(asset.status),
+                          valueColor: _statusColor(asset.status),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  FilledBtnIcon(
+                    text: 'Edit Details',
+                    icon: Icons.edit_outlined,
+                    onPressed: _isProcessing
+                        ? null
+                        : () => widget.onEdit(asset.assetCode),
+                  ),
+                  const SizedBox(height: 12),
+                  FilledBtnIcon(
+                    text: _isProcessing ? 'Updating...' : 'Update Status',
+                    icon: Icons.autorenew,
+                    color: FilledBtnColor.gray,
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _showUpdateStatusDialog(asset),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedBtnIcon(
+                    text: 'Delete Asset',
+                    icon: Icons.delete,
+                    fontColor: OutlinedBtnFontColor.red,
+                    onPressed: _isProcessing
+                        ? null
+                        : () => _confirmDelete(asset),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -327,151 +482,68 @@ class AssetDetailsPage extends StatelessWidget {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE5E7EB),
-      appBar: AppTopBar(
-        title: 'Asset Details',
-        onBack: onBack,
-        action: IconButton(
-          icon: const Icon(Icons.more_vert, color: Colors.white),
-          onPressed: () {},
-        ),
-      ),
-      body: SafeArea(
-        top: false,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(22, 20, 22, 24),
-          child: Column(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1593642634367-d91a135587b5?w=1200',
-                  height: 280,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    height: 280,
-                    color: const Color(0xFFD1D5DB),
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.laptop_mac, size: 56),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              const SurfaceCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Dell Latitude 5420',
-                                style: TextStyle(
-                                  fontSize: 56 / 1.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF111827),
-                                  height: 1.1,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'AST-2024-0156',
-                                style: TextStyle(
-                                  fontSize: 18 / 1.5,
-                                  color: Color(0xFF1F2937),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text(
-                          'Normal',
-                          style: TextStyle(
-                            color: Color(0xFF16A34A),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 36 / 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16),
-                    AssetDetailRow(
-                      icon: Icons.laptop,
-                      label: 'Asset Type',
-                      value: 'Laptop',
-                    ),
-                    SizedBox(height: 12),
-                    AssetDetailRow(
-                      icon: Icons.sell,
-                      label: 'Brand',
-                      value: 'Dell',
-                    ),
-                    SizedBox(height: 12),
-                    AssetDetailRow(
-                      icon: Icons.format_list_bulleted,
-                      label: 'Description',
-                      value:
-                          '14-inch business laptop with Intel\nCore i5 processor, 16GB RAM,\n512GB SSD. Features include\nbacklit keyboard, fingerprint\nreader, and Windows 11 Pro.',
-                    ),
-                    SizedBox(height: 12),
-                    AssetDetailRow(
-                      icon: Icons.location_on,
-                      label: 'Location',
-                      value: 'Floor 3, Room 305',
-                    ),
-                    SizedBox(height: 12),
-                    AssetDetailRow(
-                      icon: Icons.calendar_month,
-                      label: 'Purchase Date',
-                      value: 'January 15, 2024',
-                    ),
-                    SizedBox(height: 12),
-                    AssetDetailRow(
-                      icon: Icons.check_circle,
-                      label: 'Current Status',
-                      value: 'Normal - In Use',
-                      valueColor: Color(0xFF16A34A),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              FilledBtnIcon(
-                text: 'Edit Details',
-                icon: Icons.edit_outlined,
-                onPressed: onEdit,
-              ),
-              const SizedBox(height: 12),
-              FilledBtnIcon(
-                text: 'Update Status',
-                icon: Icons.autorenew,
-                color: FilledBtnColor.gray,
-                onPressed: () => _showUpdateStatusDialog(context),
-              ),
-              const SizedBox(height: 12),
-              OutlinedBtnIcon(
-                text: 'Delete Asset',
-                icon: Icons.delete,
-                fontColor: OutlinedBtnFontColor.red,
-                onPressed: () => _showDeleteSuccessDialog(context),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'under_repair':
+        return 'Under Repair';
+      case 'disposed':
+        return 'Disposed';
+      case 'normal':
+        return 'Normal';
+      default:
+        return status;
+    }
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'under_repair':
+        return const Color(0xFFDC2626);
+      case 'disposed':
+        return const Color(0xFF7C3AED);
+      case 'normal':
+        return const Color(0xFF16A34A);
+      default:
+        return const Color(0xFF334155);
+    }
+  }
+
+  IconData _iconForType(String type) {
+    switch (type) {
+      case 'laptop':
+      case 'Laptop':
+        return Icons.laptop;
+      case 'printer':
+      case 'Printer':
+        return Icons.print;
+      case 'chair':
+      case 'Office Chair':
+        return Icons.chair;
+      default:
+        return Icons.widgets;
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+
+    final month = months[date.month - 1];
+    return '$month ${date.day}, ${date.year}';
   }
 }
-
-enum _AssetStatus { normal, underRepair, disposed }
 
 class _StatusOptionTile extends StatelessWidget {
   const _StatusOptionTile({

@@ -1,14 +1,25 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
 import 'package:flutter_assignment_group/components/cards/upload_img_card.dart';
 import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
+import 'package:flutter_assignment_group/data/firestore_repository.dart';
+import 'package:flutter_assignment_group/models/asset_record.dart';
 
 class AddAssetPage extends StatefulWidget {
-  const AddAssetPage({super.key, required this.onBack});
+  const AddAssetPage({
+    super.key,
+    required this.repository,
+    required this.actorEmployeeId,
+    required this.onBack,
+    required this.onSaved,
+  });
 
+  final FirestoreRepository repository;
+  final String actorEmployeeId;
   final VoidCallback onBack;
+  final ValueChanged<String> onSaved;
 
   @override
   State<AddAssetPage> createState() => _AddAssetPageState();
@@ -16,17 +27,84 @@ class AddAssetPage extends StatefulWidget {
 
 class _AddAssetPageState extends State<AddAssetPage> {
   final TextEditingController _assetIdController = TextEditingController();
+  final TextEditingController _assetNameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
+  final List<String> _assetTypes = const [
+    'laptop',
+    'printer',
+    'chair',
+    'other',
+  ];
+
+  String _selectedType = 'laptop';
+  bool _isSaving = false;
+
   @override
   void dispose() {
     _assetIdController.dispose();
+    _assetNameController.dispose();
     _brandController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _saveAsset() async {
+    final assetId = _assetIdController.text.trim();
+    final assetName = _assetNameController.text.trim();
+    final brand = _brandController.text.trim();
+    final location = _locationController.text.trim();
+    final description = _descriptionController.text.trim();
+
+    if (assetId.isEmpty || assetName.isEmpty) {
+      _showMessage('Please fill in Asset ID and Asset Name.');
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final now = DateTime.now();
+      await widget.repository.addAsset(
+        AssetRecord(
+          assetCode: assetId,
+          name: assetName,
+          type: _selectedType,
+          brand: brand.isEmpty ? 'N/A' : brand,
+          description: description,
+          location: location.isEmpty ? 'Unknown Location' : location,
+          status: 'normal',
+          imageUrl: '',
+          purchaseDate: now,
+          assignedTo: widget.actorEmployeeId,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        actorEmployeeId: widget.actorEmployeeId,
+      );
+
+      if (!mounted) {
+        return;
+      }
+      widget.onSaved(assetId);
+    } catch (error) {
+      _showMessage(error.toString().replaceFirst('Bad state: ', ''));
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -72,8 +150,21 @@ class _AddAssetPageState extends State<AddAssetPage> {
                 ),
               ),
               const SizedBox(height: 14),
-              const SurfaceCard(
-                child: _SelectBox(label: 'Asset Type', hint: 'Select Type'),
+              SurfaceCard(
+                child: InputTextIcon(
+                  controller: _assetNameController,
+                  label: 'Asset Name',
+                  hintText: 'Enter Asset Name',
+                  icon: Icons.badge_outlined,
+                ),
+              ),
+              const SizedBox(height: 14),
+              SurfaceCard(
+                child: _AssetTypeSelector(
+                  value: _selectedType,
+                  options: _assetTypes,
+                  onChanged: (value) => setState(() => _selectedType = value),
+                ),
               ),
               const SizedBox(height: 14),
               SurfaceCard(
@@ -99,9 +190,9 @@ class _AddAssetPageState extends State<AddAssetPage> {
               ),
               const SizedBox(height: 16),
               FilledBtnIcon(
-                text: 'Save Asset',
+                text: _isSaving ? 'Saving...' : 'Save Asset',
                 icon: Icons.save,
-                onPressed: () {},
+                onPressed: _isSaving ? null : _saveAsset,
               ),
             ],
           ),
@@ -157,20 +248,25 @@ class _DescriptionField extends StatelessWidget {
   }
 }
 
-class _SelectBox extends StatelessWidget {
-  const _SelectBox({required this.label, required this.hint});
+class _AssetTypeSelector extends StatelessWidget {
+  const _AssetTypeSelector({
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
 
-  final String label;
-  final String hint;
+  final String value;
+  final List<String> options;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(
+        const Text(
+          'Asset Type',
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
             color: Color(0xFF111827),
@@ -185,19 +281,27 @@ class _SelectBox extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: const Color(0xFFD6DAE1)),
           ),
-          child: Row(
-            children: [
-              Text(
-                hint,
-                style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 20),
-              ),
-              const Spacer(),
-              const Icon(Icons.arrow_drop_down, color: Color(0xFF9CA3AF)),
-            ],
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              items: options
+                  .map(
+                    (type) => DropdownMenuItem<String>(
+                      value: type,
+                      child: Text(type),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (newValue) {
+                if (newValue != null) {
+                  onChanged(newValue);
+                }
+              },
+            ),
           ),
         ),
       ],
     );
   }
 }
-
