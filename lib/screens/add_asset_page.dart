@@ -6,6 +6,7 @@ import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart'
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
+import 'package:flutter_assignment_group/services/drive_image_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddAssetPage extends StatefulWidget {
@@ -44,7 +45,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
   ];
 
   String _selectedType = 'laptop';
-  String _selectedImageUrl = '';
+  XFile? _selectedImageFile;
   bool _isSaving = false;
 
   @override
@@ -80,6 +81,15 @@ class _AddAssetPageState extends State<AddAssetPage> {
 
     setState(() => _isSaving = true);
     try {
+      var imageUrl = '';
+      final selectedImageFile = _selectedImageFile;
+      if (selectedImageFile != null) {
+        imageUrl = await DriveImageService.uploadAssetImage(
+          file: selectedImageFile,
+          assetCode: assetId,
+        );
+      }
+
       final now = DateTime.now();
       await widget.repository.addAsset(
         AssetRecord(
@@ -90,7 +100,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
           description: description,
           location: location.isEmpty ? 'Unknown Location' : location,
           status: 'normal',
-          imageUrl: _selectedImageUrl,
+          imageUrl: imageUrl,
           purchaseDate: now,
           assignedTo: widget.actorEmployeeId,
           createdAt: now,
@@ -123,7 +133,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
 
   void _handleImageSelected(XFile? file) {
     setState(() {
-      _selectedImageUrl = file?.path.trim() ?? '';
+      _selectedImageFile = file;
     });
   }
 

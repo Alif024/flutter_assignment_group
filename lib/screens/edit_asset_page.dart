@@ -6,6 +6,7 @@ import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart'
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
+import 'package:flutter_assignment_group/services/drive_image_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditAssetPage extends StatefulWidget {
@@ -44,6 +45,7 @@ class _EditAssetPageState extends State<EditAssetPage> {
   String _selectedType = 'laptop';
   String _status = 'normal';
   String _imageUrl = '';
+  XFile? _selectedImageFile;
   bool _isSaving = false;
   bool _initialized = false;
 
@@ -72,7 +74,7 @@ class _EditAssetPageState extends State<EditAssetPage> {
 
   void _handleImageSelected(XFile? file) {
     setState(() {
-      _imageUrl = file?.path.trim() ?? _imageUrl;
+      _selectedImageFile = file;
     });
   }
 
@@ -85,6 +87,15 @@ class _EditAssetPageState extends State<EditAssetPage> {
 
     setState(() => _isSaving = true);
     try {
+      var imageUrl = _imageUrl;
+      final selectedImageFile = _selectedImageFile;
+      if (selectedImageFile != null) {
+        imageUrl = await DriveImageService.uploadAssetImage(
+          file: selectedImageFile,
+          assetCode: current.assetCode,
+        );
+      }
+
       await widget.repository.updateAsset(
         current.copyWith(
           name: name,
@@ -93,7 +104,7 @@ class _EditAssetPageState extends State<EditAssetPage> {
           location: _locationController.text.trim(),
           type: _selectedType,
           status: _status,
-          imageUrl: _imageUrl,
+          imageUrl: imageUrl,
         ),
         actorEmployeeId: widget.actorEmployeeId,
       );
