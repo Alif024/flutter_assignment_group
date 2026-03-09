@@ -28,6 +28,7 @@ class AddAssetPage extends StatefulWidget {
 }
 
 class _AddAssetPageState extends State<AddAssetPage> {
+  final UploadImgCardController _uploadImgController = UploadImgCardController();
   final TextEditingController _assetIdController = TextEditingController();
   final TextEditingController _assetNameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
@@ -133,16 +134,30 @@ class _AddAssetPageState extends State<AddAssetPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Asset Image',
-                      style: TextStyle(
-                        fontSize: 20 / 1.5,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF111827),
-                      ),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Asset Image',
+                            style: TextStyle(
+                              fontSize: 20 / 1.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Take photo',
+                          onPressed: () {
+                            _uploadImgController.pickFromCamera();
+                          },
+                          icon: const Icon(Icons.photo_camera_outlined),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     UploadImgCard(
+                      controller: _uploadImgController,
                       height: 200,
                       title: 'Tap to upload image',
                       subtitle: 'JPG, PNG or JPEG (max. 5MB)',
