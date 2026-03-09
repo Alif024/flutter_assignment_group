@@ -6,7 +6,7 @@ import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart'
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
-import 'package:flutter_assignment_group/services/drive_image_service.dart';
+import 'package:flutter_assignment_group/services/r2_image_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddAssetPage extends StatefulWidget {
@@ -84,7 +84,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
       var imageUrl = '';
       final selectedImageFile = _selectedImageFile;
       if (selectedImageFile != null) {
-        imageUrl = await DriveImageService.uploadAssetImage(
+        imageUrl = await R2ImageService.uploadAssetImage(
           file: selectedImageFile,
           assetCode: assetId,
         );
