@@ -8,6 +8,7 @@ import 'package:flutter_assignment_group/screens/admin/scan_qr_page.dart';
 import 'package:flutter_assignment_group/screens/admin/search_page.dart';
 import 'package:flutter_assignment_group/screens/login_page.dart';
 import 'package:flutter_assignment_group/screens/profile_page.dart';
+import 'package:flutter_assignment_group/user/asset_track_app.dart';
 
 class AssetTrackApp extends StatelessWidget {
   const AssetTrackApp({super.key});
@@ -46,6 +47,7 @@ class AssetTrackApp extends StatelessWidget {
 
 enum _AppPage {
   login,
+  userShell,
   dashboard,
   details,
   addAsset,
@@ -140,11 +142,26 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
               return;
             }
             _currentEmployeeId = user.employeeId;
+            if (_currentEmployeeId == 'EMP-1909') {
+              await _navigateToPage(
+                _AppPage.userShell,
+                clearSelectedAssetCode: true,
+              );
+              return;
+            }
             await _navigateToPage(
               _AppPage.dashboard,
               clearSelectedAssetCode: true,
             );
           },
+        );
+      case _AppPage.userShell:
+        return UserAssetTrackShell(
+          key: const ValueKey('user_shell_page'),
+          repository: _repository,
+          employeeId: _currentEmployeeId,
+          onLogout: () =>
+              _navigateToPage(_AppPage.login, clearSelectedAssetCode: true),
         );
       case _AppPage.dashboard:
         return _buildDashboardPage();
