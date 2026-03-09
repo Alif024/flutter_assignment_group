@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
-import 'package:flutter_assignment_group/screens/add_asset_page.dart';
-import 'package:flutter_assignment_group/screens/asset_details_page.dart';
-import 'package:flutter_assignment_group/screens/dashboard_page.dart';
-import 'package:flutter_assignment_group/screens/edit_asset_page.dart';
+import 'package:flutter_assignment_group/screens/admin/add_asset_page.dart';
+import 'package:flutter_assignment_group/screens/admin/asset_details_page.dart';
+import 'package:flutter_assignment_group/screens/admin/dashboard_page.dart';
+import 'package:flutter_assignment_group/screens/admin/edit_asset_page.dart';
+import 'package:flutter_assignment_group/screens/admin/scan_qr_page.dart';
+import 'package:flutter_assignment_group/screens/admin/search_page.dart';
 import 'package:flutter_assignment_group/screens/login_page.dart';
 import 'package:flutter_assignment_group/screens/profile_page.dart';
-import 'package:flutter_assignment_group/screens/scan_qr_page.dart';
-import 'package:flutter_assignment_group/screens/search_page.dart';
 
 class AssetTrackApp extends StatelessWidget {
   const AssetTrackApp({super.key});
