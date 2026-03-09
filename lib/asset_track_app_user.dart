@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/screens/admin/add_asset_page.dart';
+import 'package:flutter_assignment_group/screens/admin/edit_asset_page.dart';
 import 'package:flutter_assignment_group/screens/user/asset_details_page.dart';
 import 'package:flutter_assignment_group/screens/user/my_repairs_page.dart';
 import 'package:flutter_assignment_group/screens/user/profile_page.dart';
@@ -22,7 +23,7 @@ class UserAssetTrackShell extends StatefulWidget {
   State<UserAssetTrackShell> createState() => _UserAssetTrackShellState();
 }
 
-enum _UserPage { repairs, scan, addAsset, details, profile }
+enum _UserPage { repairs, scan, addAsset, editAsset, details, profile }
 
 class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
   _UserPage _currentPage = _UserPage.repairs;
@@ -105,7 +106,9 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
         return UserAssetDetailsPage(
           repository: widget.repository,
           assetCode: assetCode,
+          actorEmployeeId: widget.employeeId,
           onBack: () => _goTo(_UserPage.repairs),
+          onEdit: (code) => _goTo(_UserPage.editAsset, selectedAssetCode: code),
           onOpenRepairsTab: () => _goTo(_UserPage.repairs),
           onOpenScanTab: () => _goTo(_UserPage.scan),
           onOpenProfileTab: () => _goTo(_UserPage.profile),
@@ -118,6 +121,28 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
           initialAssetCode: _selectedAssetCode,
           onSaved: (assetCode) =>
               _goTo(_UserPage.details, selectedAssetCode: assetCode),
+        );
+      case _UserPage.editAsset:
+        final assetCode = _selectedAssetCode;
+        if (assetCode == null) {
+          return UserMyRepairsPage(
+            repository: widget.repository,
+            employeeId: widget.employeeId,
+            onOpenDetail: (code) =>
+                _goTo(_UserPage.details, selectedAssetCode: code),
+            onAddAsset: () =>
+                _goTo(_UserPage.addAsset, clearSelectedAssetCode: true),
+            onOpenScanTab: () => _goTo(_UserPage.scan),
+            onOpenProfileTab: () => _goTo(_UserPage.profile),
+            onLogout: widget.onLogout,
+          );
+        }
+        return EditAssetPage(
+          repository: widget.repository,
+          assetCode: assetCode,
+          onBack: () => _goTo(_UserPage.details, selectedAssetCode: assetCode),
+          actorEmployeeId: widget.employeeId,
+          onSaved: (code) => _goTo(_UserPage.details, selectedAssetCode: code),
         );
       case _UserPage.profile:
         return UserProfilePage(
