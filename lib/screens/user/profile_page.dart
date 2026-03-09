@@ -3,8 +3,6 @@ import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
-import 'package:flutter_assignment_group/models/asset_activity_record.dart';
-import 'package:flutter_assignment_group/models/asset_record.dart';
 import 'package:flutter_assignment_group/models/user_profile_record.dart';
 
 class UserProfilePage extends StatelessWidget {
@@ -57,31 +55,7 @@ class UserProfilePage extends StatelessWidget {
               updatedAt: DateTime.now(),
             );
 
-        return StreamBuilder<List<AssetRecord>>(
-          stream: repository.watchAssets(),
-          builder: (context, assetsSnapshot) {
-            final assets = assetsSnapshot.data ?? const <AssetRecord>[];
-            final managedAssets = assets
-                .where((asset) => asset.assignedTo == employeeId)
-                .length;
-
-            return StreamBuilder<List<AssetActivityRecord>>(
-              stream: repository.watchActivities(limit: 400),
-              builder: (context, activitySnapshot) {
-                final activities =
-                    activitySnapshot.data ?? const <AssetActivityRecord>[];
-                final sevenDaysAgo = DateTime.now().subtract(
-                  const Duration(days: 7),
-                );
-                final weeklyUpdates = activities
-                    .where(
-                      (log) =>
-                          log.actorEmployeeId == employeeId &&
-                          log.createdAt.isAfter(sevenDaysAgo),
-                    )
-                    .length;
-
-                return Scaffold(
+        return Scaffold(
                   backgroundColor: const Color(0xFFE5E7EB),
                   appBar: AppTopBar(
                     title: 'Profile',
@@ -177,28 +151,6 @@ class UserProfilePage extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _ProfileStatCard(
-                                  title: 'Assets Managed',
-                                  value: managedAssets.toString(),
-                                  icon: Icons.widgets_rounded,
-                                  iconColor: const Color(0xFF2563EB),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _ProfileStatCard(
-                                  title: 'Updates This Week',
-                                  value: weeklyUpdates.toString(),
-                                  icon: Icons.autorenew_rounded,
-                                  iconColor: const Color(0xFF16A34A),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
                           SurfaceCard(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,10 +233,6 @@ class UserProfilePage extends StatelessWidget {
                     ],
                   ),
                 );
-              },
-            );
-          },
-        );
       },
     );
   }
@@ -302,56 +250,6 @@ class UserProfilePage extends StatelessWidget {
           return '${part[0].toUpperCase()}${part.substring(1)}';
         })
         .join(' ');
-  }
-}
-
-class _ProfileStatCard extends StatelessWidget {
-  const _ProfileStatCard({
-    required this.title,
-    required this.value,
-    required this.icon,
-    required this.iconColor,
-  });
-
-  final String title;
-  final String value;
-  final IconData icon;
-  final Color iconColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return SurfaceCard(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 34 / 1.5,
-                    color: Color(0xFF0F172A),
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(icon, color: iconColor, size: 22),
-        ],
-      ),
-    );
   }
 }
 
