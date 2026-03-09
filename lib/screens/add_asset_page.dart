@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
 import 'package:flutter_assignment_group/components/cards/upload_img_card.dart';
@@ -31,7 +32,8 @@ class AddAssetPage extends StatefulWidget {
 }
 
 class _AddAssetPageState extends State<AddAssetPage> {
-  final UploadImgCardController _uploadImgController = UploadImgCardController();
+  final UploadImgCardController _uploadImgController =
+      UploadImgCardController();
   final TextEditingController _assetIdController = TextEditingController();
   final TextEditingController _assetNameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
@@ -46,6 +48,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
   ];
 
   String _selectedType = 'laptop';
+  String _existingImageUrl = '';
   XFile? _selectedImageFile;
   bool _isSaving = false;
 
@@ -55,6 +58,9 @@ class _AddAssetPageState extends State<AddAssetPage> {
     final initialCode = widget.initialAssetCode?.trim() ?? '';
     if (initialCode.isNotEmpty) {
       _assetIdController.text = initialCode;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fillAssetDataIfExists(initialCode);
+      });
     }
   }
 
@@ -139,6 +145,36 @@ class _AddAssetPageState extends State<AddAssetPage> {
     });
   }
 
+  Future<void> _fillAssetDataIfExists(String assetCode) async {
+    final normalizedCode = assetCode.trim();
+    if (normalizedCode.isEmpty) {
+      return;
+    }
+
+    final existingAsset = await widget.repository.getAsset(normalizedCode);
+    if (!mounted) {
+      return;
+    }
+
+    if (existingAsset == null) {
+      setState(() {
+        _existingImageUrl = '';
+      });
+      return;
+    }
+
+    setState(() {
+      _assetNameController.text = existingAsset.name;
+      _brandController.text = existingAsset.brand;
+      _descriptionController.text = existingAsset.description;
+      _locationController.text = existingAsset.location;
+      _selectedType = existingAsset.type.isEmpty ? 'other' : existingAsset.type;
+      _existingImageUrl = existingAsset.imageUrl;
+      _selectedImageFile = null;
+    });
+    _showMessage('Asset found. Existing details have been filled in.');
+  }
+
   Future<void> _scanAssetId() async {
     final scannedCode = await Navigator.of(context).push<String>(
       MaterialPageRoute(builder: (_) => const _AssetIdScannerPage()),
@@ -146,7 +182,9 @@ class _AddAssetPageState extends State<AddAssetPage> {
     if (!mounted || scannedCode == null || scannedCode.trim().isEmpty) {
       return;
     }
-    _assetIdController.text = scannedCode.trim();
+    final normalizedCode = scannedCode.trim();
+    _assetIdController.text = normalizedCode;
+    await _fillAssetDataIfExists(normalizedCode);
   }
 
   @override
@@ -191,6 +229,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
                       height: 200,
                       title: 'Tap to upload image',
                       subtitle: 'JPG, PNG or JPEG (max. 5MB)',
+                      initialImageUrl: _existingImageUrl,
                       onImageSelected: _handleImageSelected,
                       onTap: () {},
                     ),
@@ -217,7 +256,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
                         IconButton(
                           tooltip: 'Scan barcode',
                           onPressed: _scanAssetId,
-                          icon: const Icon(Icons.qr_code_scanner),
+                          icon: const Icon(CupertinoIcons.barcode),
                         ),
                       ],
                     ),
@@ -446,10 +485,7 @@ class _AssetIdScannerPageState extends State<_AssetIdScannerPage> {
         title: const Text('Scan Asset ID'),
         backgroundColor: Colors.black,
       ),
-      body: MobileScanner(
-        controller: _controller,
-        onDetect: _onDetect,
-      ),
+      body: MobileScanner(controller: _controller, onDetect: _onDetect),
     );
   }
 }
