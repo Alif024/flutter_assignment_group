@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
-import 'package:flutter_assignment_group/screens/admin/scan_qr_page.dart';
 import 'package:flutter_assignment_group/screens/profile_page.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class UserAssetTrackShell extends StatefulWidget {
   const UserAssetTrackShell({
@@ -71,13 +71,15 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
           employeeId: widget.employeeId,
           onOpenDetail: (assetCode) =>
               _goTo(_UserPage.details, selectedAssetCode: assetCode),
-          onOpenScan: () => _goTo(_UserPage.scan),
-          onOpenProfile: () => _goTo(_UserPage.profile),
+          onOpenScanTab: () => _goTo(_UserPage.scan),
+          onOpenProfileTab: () => _goTo(_UserPage.profile),
           onLogout: widget.onLogout,
         );
       case _UserPage.scan:
-        return ScanQrPage(
+        return _UserScanPage(
           onBack: () => _goTo(_UserPage.repairs),
+          onOpenRepairsTab: () => _goTo(_UserPage.repairs),
+          onOpenProfileTab: () => _goTo(_UserPage.profile),
           onOpenAsset: _openAsset,
         );
       case _UserPage.details:
@@ -88,8 +90,8 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
             employeeId: widget.employeeId,
             onOpenDetail: (code) =>
                 _goTo(_UserPage.details, selectedAssetCode: code),
-            onOpenScan: () => _goTo(_UserPage.scan),
-            onOpenProfile: () => _goTo(_UserPage.profile),
+            onOpenScanTab: () => _goTo(_UserPage.scan),
+            onOpenProfileTab: () => _goTo(_UserPage.profile),
             onLogout: widget.onLogout,
           );
         }
@@ -97,6 +99,9 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
           repository: widget.repository,
           assetCode: assetCode,
           onBack: () => _goTo(_UserPage.repairs),
+          onOpenRepairsTab: () => _goTo(_UserPage.repairs),
+          onOpenScanTab: () => _goTo(_UserPage.scan),
+          onOpenProfileTab: () => _goTo(_UserPage.profile),
         );
       case _UserPage.profile:
         return ProfilePage(
@@ -121,16 +126,16 @@ class _UserRepairsPage extends StatelessWidget {
     required this.repository,
     required this.employeeId,
     required this.onOpenDetail,
-    required this.onOpenScan,
-    required this.onOpenProfile,
+    required this.onOpenScanTab,
+    required this.onOpenProfileTab,
     required this.onLogout,
   });
 
   final FirestoreRepository repository;
   final String employeeId;
   final ValueChanged<String> onOpenDetail;
-  final VoidCallback onOpenScan;
-  final VoidCallback onOpenProfile;
+  final VoidCallback onOpenScanTab;
+  final VoidCallback onOpenProfileTab;
   final VoidCallback onLogout;
 
   @override
@@ -165,28 +170,6 @@ class _UserRepairsPage extends StatelessWidget {
 
           return Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        onPressed: onOpenScan,
-                        icon: const Icon(Icons.qr_code_scanner),
-                        label: const Text('Scan'),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: onOpenProfile,
-                        icon: const Icon(Icons.person_outline),
-                        label: const Text('Profile'),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               Expanded(
                 child: rows.isEmpty
                     ? const Center(
@@ -215,6 +198,12 @@ class _UserRepairsPage extends StatelessWidget {
           );
         },
       ),
+      bottomNavigationBar: _UserBottomNav(
+        currentIndex: 0,
+        onTapRepairs: null,
+        onTapScan: onOpenScanTab,
+        onTapProfile: onOpenProfileTab,
+      ),
     );
   }
 
@@ -237,11 +226,17 @@ class _UserAssetDetailsPage extends StatelessWidget {
     required this.repository,
     required this.assetCode,
     required this.onBack,
+    required this.onOpenRepairsTab,
+    required this.onOpenScanTab,
+    required this.onOpenProfileTab,
   });
 
   final FirestoreRepository repository;
   final String assetCode;
   final VoidCallback onBack;
+  final VoidCallback onOpenRepairsTab;
+  final VoidCallback onOpenScanTab;
+  final VoidCallback onOpenProfileTab;
 
   @override
   Widget build(BuildContext context) {
@@ -266,6 +261,12 @@ class _UserAssetDetailsPage extends StatelessWidget {
               ),
             ),
             body: const Center(child: Text('Asset not found.')),
+            bottomNavigationBar: _UserBottomNav(
+              currentIndex: 0,
+              onTapRepairs: onOpenRepairsTab,
+              onTapScan: onOpenScanTab,
+              onTapProfile: onOpenProfileTab,
+            ),
           );
         }
 
@@ -293,6 +294,12 @@ class _UserAssetDetailsPage extends StatelessWidget {
               ),
             ],
           ),
+          bottomNavigationBar: _UserBottomNav(
+            currentIndex: 0,
+            onTapRepairs: onOpenRepairsTab,
+            onTapScan: onOpenScanTab,
+            onTapProfile: onOpenProfileTab,
+          ),
         );
       },
     );
@@ -319,5 +326,158 @@ class _UserAssetDetailsPage extends StatelessWidget {
       default:
         return status;
     }
+  }
+}
+
+class _UserScanPage extends StatefulWidget {
+  const _UserScanPage({
+    required this.onBack,
+    required this.onOpenAsset,
+    required this.onOpenRepairsTab,
+    required this.onOpenProfileTab,
+  });
+
+  final VoidCallback onBack;
+  final ValueChanged<String> onOpenAsset;
+  final VoidCallback onOpenRepairsTab;
+  final VoidCallback onOpenProfileTab;
+
+  @override
+  State<_UserScanPage> createState() => _UserScanPageState();
+}
+
+class _UserScanPageState extends State<_UserScanPage> {
+  final MobileScannerController _controller = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+    facing: CameraFacing.back,
+  );
+  final TextEditingController _manualController = TextEditingController();
+  bool _isNavigating = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _manualController.dispose();
+    super.dispose();
+  }
+
+  void _submitManualCode() {
+    final value = _manualController.text.trim();
+    if (value.isEmpty) {
+      return;
+    }
+    widget.onOpenAsset(value);
+  }
+
+  void _handleDetect(BarcodeCapture capture) {
+    if (_isNavigating) {
+      return;
+    }
+
+    final barcode = capture.barcodes.firstOrNull;
+    final value = (barcode?.displayValue ?? barcode?.rawValue ?? '').trim();
+    if (value.isEmpty) {
+      return;
+    }
+
+    _isNavigating = true;
+    _manualController.text = value;
+    _controller.stop();
+    widget.onOpenAsset(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Scan Barcode'),
+        leading: IconButton(
+          onPressed: widget.onBack,
+          icon: const Icon(Icons.arrow_back),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: SizedBox(
+              height: 240,
+              child: MobileScanner(
+                controller: _controller,
+                onDetect: _handleDetect,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _manualController,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submitManualCode(),
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              hintText: 'Enter asset code manually',
+            ),
+          ),
+          const SizedBox(height: 10),
+          FilledButton.icon(
+            onPressed: _submitManualCode,
+            icon: const Icon(Icons.keyboard_alt_outlined),
+            label: const Text('Open by code'),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _UserBottomNav(
+        currentIndex: 1,
+        onTapRepairs: widget.onOpenRepairsTab,
+        onTapScan: null,
+        onTapProfile: widget.onOpenProfileTab,
+      ),
+    );
+  }
+}
+
+class _UserBottomNav extends StatelessWidget {
+  const _UserBottomNav({
+    required this.currentIndex,
+    required this.onTapRepairs,
+    required this.onTapScan,
+    required this.onTapProfile,
+  });
+
+  final int currentIndex;
+  final VoidCallback? onTapRepairs;
+  final VoidCallback? onTapScan;
+  final VoidCallback? onTapProfile;
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomNavigationBar(
+      currentIndex: currentIndex,
+      type: BottomNavigationBarType.fixed,
+      onTap: (index) {
+        if (index == 0) {
+          onTapRepairs?.call();
+        } else if (index == 1) {
+          onTapScan?.call();
+        } else if (index == 2) {
+          onTapProfile?.call();
+        }
+      },
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.build_circle_outlined),
+          label: 'Repairs',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.qr_code_scanner),
+          label: 'Scan',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outline),
+          label: 'Profile',
+        ),
+      ],
+    );
   }
 }
