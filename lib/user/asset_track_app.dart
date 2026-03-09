@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
-import 'package:flutter_assignment_group/screens/profile_page.dart';
+import 'package:flutter_assignment_group/screens/user/profile_page.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class UserAssetTrackShell extends StatefulWidget {
@@ -104,14 +104,12 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
           onOpenProfileTab: () => _goTo(_UserPage.profile),
         );
       case _UserPage.profile:
-        return ProfilePage(
+        return UserProfilePage(
           repository: widget.repository,
           employeeId: widget.employeeId,
-          onOpenDashboard: () => _goTo(_UserPage.repairs),
-          onOpenSearch: () => _goTo(_UserPage.scan),
-          onAddAsset: () {},
+          onOpenRepairs: () => _goTo(_UserPage.repairs),
+          onOpenScan: () => _goTo(_UserPage.scan),
           onLogout: widget.onLogout,
-          showAddTab: false,
         );
     }
   }

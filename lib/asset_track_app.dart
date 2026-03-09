@@ -7,7 +7,7 @@ import 'package:flutter_assignment_group/screens/admin/edit_asset_page.dart';
 import 'package:flutter_assignment_group/screens/admin/scan_qr_page.dart';
 import 'package:flutter_assignment_group/screens/admin/search_page.dart';
 import 'package:flutter_assignment_group/screens/login_page.dart';
-import 'package:flutter_assignment_group/screens/profile_page.dart';
+import 'package:flutter_assignment_group/screens/admin/profile_page.dart';
 import 'package:flutter_assignment_group/user/asset_track_app.dart';
 
 class AssetTrackApp extends StatelessWidget {
@@ -228,7 +228,7 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
           onOpenProfile: () => _navigateToPage(_AppPage.profile),
         );
       case _AppPage.profile:
-        return ProfilePage(
+        return AdminProfilePage(
           key: const ValueKey('profile_page'),
           repository: _repository,
           employeeId: _currentEmployeeId,

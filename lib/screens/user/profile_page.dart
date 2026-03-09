@@ -7,25 +7,21 @@ import 'package:flutter_assignment_group/models/asset_activity_record.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
 import 'package:flutter_assignment_group/models/user_profile_record.dart';
 
-class ProfilePage extends StatelessWidget {
-  const ProfilePage({
+class UserProfilePage extends StatelessWidget {
+  const UserProfilePage({
     super.key,
     required this.repository,
     required this.employeeId,
-    required this.onOpenDashboard,
-    required this.onOpenSearch,
-    required this.onAddAsset,
+    required this.onOpenRepairs,
+    required this.onOpenScan,
     required this.onLogout,
-    this.showAddTab = true,
   });
 
   final FirestoreRepository repository;
   final String employeeId;
-  final VoidCallback onOpenDashboard;
-  final VoidCallback onOpenSearch;
-  final VoidCallback onAddAsset;
+  final VoidCallback onOpenRepairs;
+  final VoidCallback onOpenScan;
   final VoidCallback onLogout;
-  final bool showAddTab;
 
   Future<void> _showEditProfileDialog(
     BuildContext context,
@@ -259,51 +255,30 @@ class ProfilePage extends StatelessWidget {
                   ),
                   bottomNavigationBar: BottomNavigationBar(
                     type: BottomNavigationBarType.fixed,
-                    currentIndex: showAddTab ? 3 : 2,
+                    currentIndex: 2,
                     selectedItemColor: Colors.black,
                     unselectedItemColor: Colors.black,
                     onTap: (index) {
                       if (index == 0) {
-                        onOpenDashboard();
+                        onOpenRepairs();
                       } else if (index == 1) {
-                        onOpenSearch();
-                      } else if (showAddTab && index == 2) {
-                        onAddAsset();
+                        onOpenScan();
                       }
                     },
-                    items: showAddTab
-                        ? const [
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.home),
-                              label: 'Home',
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.search),
-                              label: 'Search',
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.add),
-                              label: 'Add',
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.person),
-                              label: 'Profile',
-                            ),
-                          ]
-                        : const [
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.build_circle_outlined),
-                              label: 'Repairs',
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.qr_code_scanner),
-                              label: 'Scan',
-                            ),
-                            BottomNavigationBarItem(
-                              icon: Icon(Icons.person),
-                              label: 'Profile',
-                            ),
-                          ],
+                    items: const [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.build_circle_outlined),
+                        label: 'Repairs',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.qr_code_scanner),
+                        label: 'Scan',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.person),
+                        label: 'Profile',
+                      ),
+                    ],
                   ),
                 );
               },
@@ -592,3 +567,4 @@ class _DialogInput extends StatelessWidget {
     );
   }
 }
+
