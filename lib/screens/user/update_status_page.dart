@@ -81,17 +81,8 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
           child: Column(
             children: [
               _StatusOptionTile(
-                title: 'Normal',
-                description: 'Asset is functioning properly',
-                icon: Icons.check_circle,
-                iconColor: const Color(0xFF16A34A),
-                selected: _selectedStatus == 'normal',
-                onTap: () => setState(() => _selectedStatus = 'normal'),
-              ),
-              const SizedBox(height: 10),
-              _StatusOptionTile(
-                title: 'Under Repair',
-                description: 'Asset is currently being serviced',
+                title: 'ยืนยันการซ่อม',
+                description: 'อุปกรณ์อยู่ในสถานะกำลังซ่อม',
                 icon: Icons.build,
                 iconColor: const Color(0xFF2563EB),
                 selected: _selectedStatus == 'under_repair',
@@ -99,12 +90,12 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
               ),
               const SizedBox(height: 10),
               _StatusOptionTile(
-                title: 'Disposed',
-                description: 'Asset has been removed from inventory',
-                icon: Icons.delete,
-                iconColor: const Color(0xFFDC2626),
-                selected: _selectedStatus == 'disposed',
-                onTap: () => setState(() => _selectedStatus = 'disposed'),
+                title: 'ไม่ต้องซ่อมแล้ว',
+                description: 'อุปกรณ์กลับสู่สถานะใช้งานปกติ',
+                icon: Icons.check_circle,
+                iconColor: const Color(0xFF16A34A),
+                selected: _selectedStatus == 'normal',
+                onTap: () => setState(() => _selectedStatus = 'normal'),
               ),
               const SizedBox(height: 14),
               TextField(
@@ -147,7 +138,7 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _isSubmitting ? null : _confirm,
-                      child: Text(_isSubmitting ? 'Saving...' : 'Confirm'),
+                      child: Text(_isSubmitting ? 'Saving...' : 'Save'),
                     ),
                   ),
                 ],
