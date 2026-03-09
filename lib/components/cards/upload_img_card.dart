@@ -1,4 +1,4 @@
-import 'dart:typed_data';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,7 +47,7 @@ class UploadImgCard extends StatefulWidget {
 
 class _UploadImgCardState extends State<UploadImgCard> {
   final ImagePicker _picker = ImagePicker();
-  Uint8List? _selectedImageBytes;
+  XFile? _selectedImageFile;
   bool _isPressed = false;
   bool _isPicking = false;
 
@@ -115,13 +115,12 @@ class _UploadImgCardState extends State<UploadImgCard> {
         return;
       }
 
-      final bytes = await file.readAsBytes();
       if (!mounted) {
         return;
       }
 
       setState(() {
-        _selectedImageBytes = bytes;
+        _selectedImageFile = file;
       });
       widget.onImageSelected?.call(file);
     } catch (_) {
@@ -167,13 +166,27 @@ class _UploadImgCardState extends State<UploadImgCard> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(22),
-                    child: _selectedImageBytes != null
+                    child: _selectedImageFile != null
                         ? Stack(
                             fit: StackFit.expand,
                             children: [
-                              Image.memory(
-                                _selectedImageBytes!,
-                                fit: BoxFit.cover,
+                              Container(
+                                margin: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: const Color(0xFFC9D5E6),
+                                    width: 1.3,
+                                  ),
+                                  color: const Color(0xFFF0F4FA),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(13),
+                                  child: Image.file(
+                                    File(_selectedImageFile!.path),
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
                               ),
                               Align(
                                 alignment: Alignment.topRight,
