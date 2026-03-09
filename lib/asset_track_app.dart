@@ -8,7 +8,7 @@ import 'package:flutter_assignment_group/screens/admin/scan_qr_page.dart';
 import 'package:flutter_assignment_group/screens/admin/search_page.dart';
 import 'package:flutter_assignment_group/screens/login_page.dart';
 import 'package:flutter_assignment_group/screens/admin/profile_page.dart';
-import 'package:flutter_assignment_group/user/asset_track_app.dart';
+import 'package:flutter_assignment_group/asset_track_app_user.dart';
 
 class AssetTrackApp extends StatelessWidget {
   const AssetTrackApp({super.key});
@@ -122,10 +122,7 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
       return;
     }
 
-    await _navigateToPage(
-      _AppPage.addAsset,
-      selectedAssetCode: normalizedCode,
-    );
+    await _navigateToPage(_AppPage.addAsset, selectedAssetCode: normalizedCode);
   }
 
   Widget _buildCurrentPage() {
@@ -175,10 +172,8 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
           repository: _repository,
           assetCode: selectedAssetCode,
           onBack: () => _navigateToPage(_AppPage.dashboard),
-          onEdit: (assetCode) => _navigateToPage(
-            _AppPage.editAsset,
-            selectedAssetCode: assetCode,
-          ),
+          onEdit: (assetCode) =>
+              _navigateToPage(_AppPage.editAsset, selectedAssetCode: assetCode),
           onDeleted: () =>
               _navigateToPage(_AppPage.dashboard, clearSelectedAssetCode: true),
           actorEmployeeId: _currentEmployeeId,
