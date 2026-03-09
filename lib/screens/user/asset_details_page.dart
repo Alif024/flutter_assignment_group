@@ -7,6 +7,7 @@ import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/components/layout/asset_detail_row.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
+import 'package:flutter_assignment_group/screens/user/update_status_page.dart';
 import 'package:flutter_assignment_group/screens/user/widgets/user_bottom_nav.dart';
 
 class UserAssetDetailsPage extends StatefulWidget {
@@ -38,213 +39,30 @@ class UserAssetDetailsPage extends StatefulWidget {
 class _UserAssetDetailsPageState extends State<UserAssetDetailsPage> {
   bool _isProcessing = false;
 
-  Future<void> _showUpdateStatusDialog(AssetRecord asset) async {
-    final noteController = TextEditingController();
-    var selectedStatus = asset.status;
-
-    try {
-      await showDialog<void>(
-        context: context,
-        barrierDismissible: true,
-        builder: (dialogContext) {
-          return StatefulBuilder(
-            builder: (context, setState) {
-              return Dialog(
-                insetPadding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 24,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              'Update Status',
-                              style: TextStyle(
-                                fontSize: 30 / 1.5,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFF111827),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => Navigator.of(dialogContext).pop(),
-                            icon: const Icon(
-                              Icons.close,
-                              color: Color(0xFF64748B),
-                            ),
-                            tooltip: 'Close',
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'Change the current status of this asset',
-                        style: TextStyle(
-                          fontSize: 22 / 1.5,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _StatusOptionTile(
-                        title: 'Normal',
-                        description: 'Asset is functioning properly',
-                        icon: Icons.check_circle,
-                        iconColor: const Color(0xFF16A34A),
-                        selected: selectedStatus == 'normal',
-                        onTap: () => setState(() => selectedStatus = 'normal'),
-                      ),
-                      const SizedBox(height: 10),
-                      _StatusOptionTile(
-                        title: 'Under Repair',
-                        description: 'Asset is currently being serviced',
-                        icon: Icons.build,
-                        iconColor: const Color(0xFF2563EB),
-                        selected: selectedStatus == 'under_repair',
-                        onTap: () =>
-                            setState(() => selectedStatus = 'under_repair'),
-                      ),
-                      const SizedBox(height: 10),
-                      _StatusOptionTile(
-                        title: 'Disposed',
-                        description: 'Asset has been removed from inventory',
-                        icon: Icons.delete,
-                        iconColor: const Color(0xFFDC2626),
-                        selected: selectedStatus == 'disposed',
-                        onTap: () =>
-                            setState(() => selectedStatus = 'disposed'),
-                      ),
-                      const SizedBox(height: 14),
-                      const Text(
-                        'Notes (Optional)',
-                        style: TextStyle(
-                          fontSize: 24 / 1.5,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: noteController,
-                        maxLength: 200,
-                        minLines: 3,
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          hintText:
-                              'Add any additional information about this status change...',
-                          counterText: '',
-                          filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
-                          contentPadding: const EdgeInsets.all(12),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFCBD5E1),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF2563EB),
-                              width: 1.4,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              onPressed: () =>
-                                  Navigator.of(dialogContext).pop(),
-                              style: OutlinedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor: const Color(0xFF111827),
-                                minimumSize: const Size.fromHeight(48),
-                                side: const BorderSide(
-                                  color: Color(0xFFCBD5E1),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Cancel',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                Navigator.of(dialogContext).pop();
-                                await _updateStatus(
-                                  assetCode: asset.assetCode,
-                                  status: selectedStatus,
-                                  note: noteController.text.trim(),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF2563EB),
-                                foregroundColor: Colors.white,
-                                minimumSize: const Size.fromHeight(48),
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: const Text(
-                                'Confirm',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      );
-    } finally {
-      noteController.dispose();
+  Future<void> _openUpdateStatusPage(AssetRecord asset) async {
+    if (_isProcessing) {
+      return;
     }
-  }
-
-  Future<void> _updateStatus({
-    required String assetCode,
-    required String status,
-    required String note,
-  }) async {
     setState(() => _isProcessing = true);
-    try {
-      await widget.repository.updateAssetStatus(
-        assetCode: assetCode,
-        status: status,
-        note: note,
-        actorEmployeeId: widget.actorEmployeeId,
-      );
-      _showMessage('Status updated.');
-    } catch (error) {
-      _showMessage(error.toString().replaceFirst('Bad state: ', ''));
-    } finally {
+    final updated = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => UserUpdateStatusPage(
+          repository: widget.repository,
+          assetCode: asset.assetCode,
+          currentStatus: asset.status,
+          actorEmployeeId: widget.actorEmployeeId,
+        ),
+      ),
+    );
+
+    if (!mounted || updated != true) {
       if (mounted) {
         setState(() => _isProcessing = false);
       }
+      return;
     }
+    setState(() => _isProcessing = false);
+    _showMessage('Status updated.');
   }
 
   void _showMessage(String message) {
@@ -394,12 +212,12 @@ class _UserAssetDetailsPageState extends State<UserAssetDetailsPage> {
                   ),
                   const SizedBox(height: 12),
                   FilledBtnIcon(
-                    text: _isProcessing ? 'Updating...' : 'Update Status',
+                    text: 'Update Status',
                     icon: Icons.autorenew,
                     color: FilledBtnColor.gray,
                     onPressed: _isProcessing
                         ? null
-                        : () => _showUpdateStatusDialog(asset),
+                        : () => _openUpdateStatusPage(asset),
                   ),
                 ],
               ),
@@ -556,102 +374,5 @@ class _UserAssetDetailsPageState extends State<UserAssetDetailsPage> {
     }
 
     return null;
-  }
-}
-
-class _StatusOptionTile extends StatelessWidget {
-  const _StatusOptionTile({
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.iconColor,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String title;
-  final String description;
-  final IconData icon;
-  final Color iconColor;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? const Color(0xFF94A3B8) : const Color(0xFFCBD5E1),
-          ),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 140),
-                width: 19,
-                height: 19,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: selected
-                        ? const Color(0xFF2563EB)
-                        : const Color(0xFFCBD5E1),
-                    width: 1.5,
-                  ),
-                ),
-                child: selected
-                    ? const Center(
-                        child: CircleAvatar(
-                          radius: 5,
-                          backgroundColor: Color(0xFF2563EB),
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(icon, size: 16, color: iconColor),
-                      const SizedBox(width: 6),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 23 / 1.5,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    description,
-                    style: const TextStyle(
-                      fontSize: 20 / 1.5,
-                      color: Color(0xFF64748B),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
