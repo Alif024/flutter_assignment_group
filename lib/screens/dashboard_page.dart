@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
@@ -118,9 +119,9 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 12),
                             FilledBtnIcon(
-                              text: 'Scan QR Code',
+                              text: 'Scan Bar Code',
                               onPressed: widget.onScanQr,
-                              icon: Icons.qr_code_scanner,
+                              icon: CupertinoIcons.barcode,
                             ),
                             const SizedBox(height: 12),
                             OutlinedBtnIcon(

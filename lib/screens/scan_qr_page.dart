@@ -38,11 +38,43 @@ class _ScanQrPageState extends State<ScanQrPage> {
 
   String? _lastCode;
   bool _isHandlingCode = false;
+  bool _isForcingBackCamera = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_enforceBackCameraIfNeeded);
+  }
 
   @override
   void dispose() {
+    _controller.removeListener(_enforceBackCameraIfNeeded);
     _controller.dispose();
     super.dispose();
+  }
+
+  void _enforceBackCameraIfNeeded() {
+    if (_isForcingBackCamera) {
+      return;
+    }
+
+    final state = _controller.value;
+    if (!state.isInitialized || !state.isRunning) {
+      return;
+    }
+
+    if (state.cameraDirection != CameraFacing.front) {
+      return;
+    }
+
+    _isForcingBackCamera = true;
+    _controller
+        .switchCamera(
+          const SelectCamera(facingDirection: CameraFacing.back),
+        )
+        .whenComplete(() {
+          _isForcingBackCamera = false;
+        });
   }
 
   void _handleBarcode(BarcodeCapture capture) {
