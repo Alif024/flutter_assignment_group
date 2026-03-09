@@ -11,6 +11,8 @@ class FilledBtnIcon extends StatelessWidget {
     this.height = 60,
     this.borderRadius = 14,
     this.iconTextSpacing = 14,
+    this.iconSize = 28,
+    this.fontSize = 28 / 1.5,
     this.color = FilledBtnColor.blue,
   });
 
@@ -20,6 +22,8 @@ class FilledBtnIcon extends StatelessWidget {
   final double height;
   final double borderRadius;
   final double iconTextSpacing;
+  final double iconSize;
+  final double fontSize;
   final FilledBtnColor color;
 
   Color get _backgroundColor {
@@ -67,12 +71,12 @@ class FilledBtnIcon extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 28, color: Colors.white),
+              Icon(icon, size: iconSize, color: Colors.white),
               SizedBox(width: iconTextSpacing),
               Text(
                 text,
-                style: const TextStyle(
-                  fontSize: 28 / 1.5,
+                style: TextStyle(
+                  fontSize: fontSize,
                   fontWeight: FontWeight.w500,
                 ),
               ),

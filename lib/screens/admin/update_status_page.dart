@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
+import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 
@@ -37,7 +39,7 @@ class _AdminUpdateStatusPageState extends State<AdminUpdateStatusPage> {
     super.dispose();
   }
 
-  Future<void> _confirm() async {
+  Future<void> _save() async {
     if (_isSubmitting) {
       return;
     }
@@ -136,18 +138,29 @@ class _AdminUpdateStatusPageState extends State<AdminUpdateStatusPage> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: OutlinedBtnIcon(
+                      text: 'Cancel',
+                      icon: Icons.close,
+                      fontColor: OutlinedBtnFontColor.gray,
+                      height: 52,
+                      iconSize: 20,
+                      fontSize: 14,
+                      iconTextSpacing: 8,
                       onPressed: _isSubmitting
                           ? null
                           : () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _confirm,
-                      child: Text(_isSubmitting ? 'Saving...' : 'Confirm'),
+                    child: FilledBtnIcon(
+                      text: _isSubmitting ? 'Saving...' : 'Save',
+                      icon: Icons.save_outlined,
+                      height: 52,
+                      iconSize: 20,
+                      fontSize: 14,
+                      iconTextSpacing: 8,
+                      onPressed: _isSubmitting ? null : _save,
                     ),
                   ),
                 ],

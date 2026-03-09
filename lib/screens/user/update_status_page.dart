@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
+import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 
@@ -37,7 +39,7 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
     super.dispose();
   }
 
-  Future<void> _confirm() async {
+  Future<void> _save() async {
     if (_isSubmitting) {
       return;
     }
@@ -81,8 +83,8 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
           child: Column(
             children: [
               _StatusOptionTile(
-                title: 'ยืนยันการซ่อม',
-                description: 'อุปกรณ์อยู่ในสถานะกำลังซ่อม',
+                title: 'Confirm Repair',
+                description: 'Set asset status to under repair',
                 icon: Icons.build,
                 iconColor: const Color(0xFF2563EB),
                 selected: _selectedStatus == 'under_repair',
@@ -90,10 +92,10 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
               ),
               const SizedBox(height: 10),
               _StatusOptionTile(
-                title: 'ไม่ต้องซ่อมแล้ว',
-                description: 'อุปกรณ์กลับสู่สถานะใช้งานปกติ',
-                icon: Icons.check_circle,
-                iconColor: const Color(0xFF16A34A),
+                title: 'No Repair Needed',
+                description: 'Set asset status back to normal',
+                icon: Icons.close,
+                iconColor: const Color(0xFFDC2626),
                 selected: _selectedStatus == 'normal',
                 onTap: () => setState(() => _selectedStatus = 'normal'),
               ),
@@ -127,18 +129,29 @@ class _UserUpdateStatusPageState extends State<UserUpdateStatusPage> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: OutlinedBtnIcon(
+                      text: 'Cancel',
+                      icon: Icons.close,
+                      fontColor: OutlinedBtnFontColor.gray,
+                      height: 52,
+                      iconSize: 20,
+                      fontSize: 14,
+                      iconTextSpacing: 8,
                       onPressed: _isSubmitting
                           ? null
                           : () => Navigator.of(context).pop(false),
-                      child: const Text('Cancel'),
                     ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isSubmitting ? null : _confirm,
-                      child: Text(_isSubmitting ? 'Saving...' : 'Save'),
+                    child: FilledBtnIcon(
+                      text: _isSubmitting ? 'Saving...' : 'Save',
+                      icon: Icons.save_outlined,
+                      height: 52,
+                      iconSize: 20,
+                      fontSize: 14,
+                      iconTextSpacing: 8,
+                      onPressed: _isSubmitting ? null : _save,
                     ),
                   ),
                 ],

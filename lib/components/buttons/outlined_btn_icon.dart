@@ -11,6 +11,8 @@ class OutlinedBtnIcon extends StatelessWidget {
     this.height = 60,
     this.borderRadius = 14,
     this.iconTextSpacing = 14,
+    this.iconSize = 28,
+    this.fontSize = 28 / 1.5,
     this.fontColor = OutlinedBtnFontColor.navy,
   });
 
@@ -20,6 +22,8 @@ class OutlinedBtnIcon extends StatelessWidget {
   final double height;
   final double borderRadius;
   final double iconTextSpacing;
+  final double iconSize;
+  final double fontSize;
   final OutlinedBtnFontColor fontColor;
 
   Color get _contentColor {
@@ -50,13 +54,13 @@ class OutlinedBtnIcon extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 28, color: _contentColor),
+            Icon(icon, size: iconSize, color: _contentColor),
             SizedBox(width: iconTextSpacing),
             Text(
               text,
               style: TextStyle(
                 color: _contentColor,
-                fontSize: 28 / 1.5,
+                fontSize: fontSize,
                 fontWeight: FontWeight.w600,
               ),
             ),
