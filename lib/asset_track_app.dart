@@ -14,8 +14,31 @@ class AssetTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        scaffoldBackgroundColor: const Color(0xFFE5E7EB),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF2D66DF),
+          brightness: Brightness.light,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFF2D66DF),
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFF2D66DF),
+            foregroundColor: Colors.white,
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFF2D66DF),
+          ),
+        ),
+      ),
       home: _AssetTrackShell(),
     );
   }

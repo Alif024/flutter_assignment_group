@@ -80,16 +80,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               const SizedBox(height: 16),
-              Container(
-                width: 84,
-                height: 84,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2D66DF),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                alignment: Alignment.center,
-                child: SvgPicture.asset('assets/icons/logo.svg', width: 44),
-              ),
+              SvgPicture.asset('assets/icons/logo.svg', width: 80, height: 80),
               const SizedBox(height: 18),
               const Text(
                 'AssetTrack',
