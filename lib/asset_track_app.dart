@@ -101,6 +101,31 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
     });
   }
 
+  Future<void> _openAssetFromScanOrInput(String assetCode) async {
+    final normalizedCode = assetCode.trim();
+    if (normalizedCode.isEmpty) {
+      return;
+    }
+
+    final asset = await _repository.getAsset(normalizedCode);
+    if (!mounted) {
+      return;
+    }
+
+    if (asset != null) {
+      await _navigateToPage(
+        _AppPage.details,
+        selectedAssetCode: normalizedCode,
+      );
+      return;
+    }
+
+    await _navigateToPage(
+      _AppPage.addAsset,
+      selectedAssetCode: normalizedCode,
+    );
+  }
+
   Widget _buildCurrentPage() {
     switch (_currentPage) {
       case _AppPage.login:
@@ -142,11 +167,13 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
           actorEmployeeId: _currentEmployeeId,
         );
       case _AppPage.addAsset:
+        final selectedAssetCode = _selectedAssetCode;
         return AddAssetPage(
           key: const ValueKey('add_asset_page'),
           repository: _repository,
           onBack: () => _navigateToPage(_AppPage.dashboard),
           actorEmployeeId: _currentEmployeeId,
+          initialAssetCode: selectedAssetCode,
           onSaved: (assetCode) =>
               _navigateToPage(_AppPage.details, selectedAssetCode: assetCode),
         );
@@ -168,8 +195,9 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
         return ScanQrPage(
           key: const ValueKey('scan_qr_page'),
           onBack: () => _navigateToPage(_AppPage.dashboard),
-          onOpenAsset: (assetCode) =>
-              _navigateToPage(_AppPage.details, selectedAssetCode: assetCode),
+          onOpenAsset: (assetCode) {
+            _openAssetFromScanOrInput(assetCode);
+          },
         );
       case _AppPage.search:
         return SearchPage(

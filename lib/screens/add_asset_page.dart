@@ -14,12 +14,14 @@ class AddAssetPage extends StatefulWidget {
     required this.actorEmployeeId,
     required this.onBack,
     required this.onSaved,
+    this.initialAssetCode,
   });
 
   final FirestoreRepository repository;
   final String actorEmployeeId;
   final VoidCallback onBack;
   final ValueChanged<String> onSaved;
+  final String? initialAssetCode;
 
   @override
   State<AddAssetPage> createState() => _AddAssetPageState();
@@ -41,6 +43,15 @@ class _AddAssetPageState extends State<AddAssetPage> {
 
   String _selectedType = 'laptop';
   bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final initialCode = widget.initialAssetCode?.trim() ?? '';
+    if (initialCode.isNotEmpty) {
+      _assetIdController.text = initialCode;
+    }
+  }
 
   @override
   void dispose() {
