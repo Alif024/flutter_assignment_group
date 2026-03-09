@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class ScanQrPage extends StatefulWidget {
@@ -35,50 +38,35 @@ class _ScanQrPageState extends State<ScanQrPage> {
       BarcodeFormat.aztec,
     ],
   );
+  final TextEditingController _manualCodeController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
-  String? _lastCode;
-  bool _isHandlingCode = false;
-  bool _isForcingBackCamera = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller.addListener(_enforceBackCameraIfNeeded);
-  }
+  XFile? _selectedImage;
+  bool _isProcessingImage = false;
+  bool _isNavigatingFromScan = false;
+  String? _imageScanMessage;
 
   @override
   void dispose() {
-    _controller.removeListener(_enforceBackCameraIfNeeded);
+    _manualCodeController.dispose();
     _controller.dispose();
     super.dispose();
   }
 
-  void _enforceBackCameraIfNeeded() {
-    if (_isForcingBackCamera) {
+  void _openAssetFromCode(String rawCode) {
+    final value = rawCode.trim();
+    if (value.isEmpty) {
       return;
     }
-
-    final state = _controller.value;
-    if (!state.isInitialized || !state.isRunning) {
-      return;
-    }
-
-    if (state.cameraDirection != CameraFacing.front) {
-      return;
-    }
-
-    _isForcingBackCamera = true;
-    _controller
-        .switchCamera(
-          const SelectCamera(facingDirection: CameraFacing.back),
-        )
-        .whenComplete(() {
-          _isForcingBackCamera = false;
-        });
+    widget.onOpenAsset(value);
   }
 
-  void _handleBarcode(BarcodeCapture capture) {
-    if (_isHandlingCode) {
+  void _submitManualCode() {
+    _openAssetFromCode(_manualCodeController.text);
+  }
+
+  void _handleLiveBarcode(BarcodeCapture capture) {
+    if (_isNavigatingFromScan) {
       return;
     }
 
@@ -88,193 +76,255 @@ class _ScanQrPageState extends State<ScanQrPage> {
       return;
     }
 
-    setState(() {
-      _lastCode = value;
-      _isHandlingCode = true;
-    });
-
+    _isNavigatingFromScan = true;
+    _manualCodeController.text = value;
     _controller.stop();
     widget.onOpenAsset(value);
   }
 
-  void _openScannedAsset() {
-    final value = _lastCode;
-    if (value == null || value.isEmpty) {
+  Future<void> _pickAndScanImage() async {
+    if (_isProcessingImage) {
       return;
     }
-    widget.onOpenAsset(value);
-  }
 
-  Future<void> _scanAgain() async {
-    await _controller.start();
-    if (!mounted) {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image == null) {
       return;
     }
 
     setState(() {
-      _isHandlingCode = false;
+      _selectedImage = image;
+      _isProcessingImage = true;
+      _imageScanMessage = null;
     });
+
+    try {
+      final capture = await _controller.analyzeImage(image.path);
+      final barcode = capture?.barcodes.firstOrNull;
+      final value = (barcode?.displayValue ?? barcode?.rawValue ?? '').trim();
+
+      if (!mounted) {
+        return;
+      }
+
+      if (value.isEmpty) {
+        setState(() {
+          _imageScanMessage = 'No barcode found in selected image.';
+        });
+        return;
+      }
+
+      setState(() {
+        _manualCodeController.text = value;
+        _imageScanMessage = 'Barcode found: $value';
+      });
+
+      _openAssetFromCode(value);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _imageScanMessage =
+            'Unable to read this image. Please try another one.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isProcessingImage = false;
+        });
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFE5E7EB),
-      appBar: AppTopBar(
-        title: 'Scan Barcode',
-        onBack: widget.onBack,
-      ),
+      appBar: AppTopBar(title: 'Scan Barcode', onBack: widget.onBack),
       body: SafeArea(
         top: false,
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
           child: Column(
             children: [
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18),
-                    color: Colors.black,
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      MobileScanner(
-                        controller: _controller,
-                        onDetect: _handleBarcode,
-                        errorBuilder: (context, error) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(20),
-                              child: Text(
-                                'Camera error: ${error.errorCode.name}',
-                                style: const TextStyle(color: Colors.white),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      IgnorePointer(
-                        child: CustomPaint(
-                          painter: _ScanFramePainter(),
-                        ),
-                      ),
-                      const Positioned(
-                        left: 16,
-                        right: 16,
-                        bottom: 16,
-                        child: Text(
-                          'Place barcode inside the frame',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE5E7EB)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Latest Scan',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                        color: Color(0xFF111827),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _lastCode ?? 'No barcode scanned yet.',
-                      style: const TextStyle(
-                        color: Color(0xFF4B5563),
-                        fontSize: 15,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _isHandlingCode ? _scanAgain : null,
-                            icon: const Icon(Icons.qr_code_scanner),
-                            label: const Text('Scan Again'),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: FilledButton.icon(
-                            onPressed: _lastCode == null ? null : _openScannedAsset,
-                            icon: const Icon(Icons.open_in_new),
-                            label: const Text('Open Asset'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              _buildLiveScannerCard(),
+              const SizedBox(height: 12),
+              _buildManualEntryCard(),
+              const SizedBox(height: 12),
+              _buildUploadImageCard(),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-class _ScanFramePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const frameColor = Color(0xCCFFFFFF);
-    const strokeWidth = 4.0;
-    const corner = 28.0;
-    final center = Offset(size.width / 2, size.height / 2);
-    final frameWidth = size.width * 0.74;
-    final frameHeight = size.height * 0.40;
-    final rect = Rect.fromCenter(
-      center: center,
-      width: frameWidth,
-      height: frameHeight,
+  Widget _buildLiveScannerCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Scan QR / Barcode',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            height: 220,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  MobileScanner(
+                    controller: _controller,
+                    onDetect: _handleLiveBarcode,
+                    errorBuilder: (context, error) {
+                      return Center(
+                        child: Text(
+                          'Camera error: ${error.errorCode.name}',
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                      );
+                    },
+                  ),
+                  const Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Text(
+                        'Place QR/Barcode inside frame',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
-
-    final paint = Paint()
-      ..color = frameColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth
-      ..strokeCap = StrokeCap.round;
-
-    final path = Path()
-      ..moveTo(rect.left, rect.top + corner)
-      ..lineTo(rect.left, rect.top)
-      ..lineTo(rect.left + corner, rect.top)
-      ..moveTo(rect.right - corner, rect.top)
-      ..lineTo(rect.right, rect.top)
-      ..lineTo(rect.right, rect.top + corner)
-      ..moveTo(rect.left, rect.bottom - corner)
-      ..lineTo(rect.left, rect.bottom)
-      ..lineTo(rect.left + corner, rect.bottom)
-      ..moveTo(rect.right - corner, rect.bottom)
-      ..lineTo(rect.right, rect.bottom)
-      ..lineTo(rect.right, rect.bottom - corner);
-
-    canvas.drawPath(path, paint);
   }
 
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  Widget _buildManualEntryCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Enter asset code manually',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _manualCodeController,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submitManualCode(),
+            decoration: InputDecoration(
+              hintText: 'e.g. ASSET-0001',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _submitManualCode,
+              icon: const Icon(Icons.keyboard_alt_outlined),
+              label: const Text('Open by code'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUploadImageCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Upload image from phone',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              color: Color(0xFF111827),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _isProcessingImage ? null : _pickAndScanImage,
+              icon: const Icon(Icons.photo_library_outlined),
+              label: Text(
+                _isProcessingImage ? 'Scanning image...' : 'Choose image',
+              ),
+            ),
+          ),
+          if (_selectedImage != null) ...[
+            const SizedBox(height: 10),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AspectRatio(
+                aspectRatio: 16 / 9,
+                child: Image.file(
+                  File(_selectedImage!.path),
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ],
+          if (_imageScanMessage != null) ...[
+            const SizedBox(height: 10),
+            Text(
+              _imageScanMessage!,
+              style: const TextStyle(color: Color(0xFF4B5563)),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
