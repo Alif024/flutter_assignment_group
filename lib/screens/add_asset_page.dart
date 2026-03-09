@@ -8,6 +8,7 @@ import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
 import 'package:flutter_assignment_group/services/r2_image_service.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class AddAssetPage extends StatefulWidget {
   const AddAssetPage({
@@ -112,6 +113,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
       if (!mounted) {
         return;
       }
+      _assetIdController.clear();
       widget.onSaved(assetId);
     } catch (error) {
       _showMessage(error.toString().replaceFirst('Bad state: ', ''));
@@ -135,6 +137,16 @@ class _AddAssetPageState extends State<AddAssetPage> {
     setState(() {
       _selectedImageFile = file;
     });
+  }
+
+  Future<void> _scanAssetId() async {
+    final scannedCode = await Navigator.of(context).push<String>(
+      MaterialPageRoute(builder: (_) => const _AssetIdScannerPage()),
+    );
+    if (!mounted || scannedCode == null || scannedCode.trim().isEmpty) {
+      return;
+    }
+    _assetIdController.text = scannedCode.trim();
   }
 
   @override
@@ -187,11 +199,54 @@ class _AddAssetPageState extends State<AddAssetPage> {
               ),
               const SizedBox(height: 14),
               SurfaceCard(
-                child: InputTextIcon(
-                  controller: _assetIdController,
-                  label: 'Asset ID',
-                  hintText: 'Enter Asset ID',
-                  icon: Icons.tag,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Asset ID',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF111827),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Scan barcode',
+                          onPressed: _scanAssetId,
+                          icon: const Icon(Icons.qr_code_scanner),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      height: 56,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7F7F8),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: const Color(0xFFD6DAE1)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.tag, size: 22),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: TextField(
+                              controller: _assetIdController,
+                              decoration: const InputDecoration(
+                                hintText: 'Enter Asset ID',
+                                border: InputBorder.none,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 14),
@@ -347,6 +402,54 @@ class _AssetTypeSelector extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AssetIdScannerPage extends StatefulWidget {
+  const _AssetIdScannerPage();
+
+  @override
+  State<_AssetIdScannerPage> createState() => _AssetIdScannerPageState();
+}
+
+class _AssetIdScannerPageState extends State<_AssetIdScannerPage> {
+  final MobileScannerController _controller = MobileScannerController(
+    detectionSpeed: DetectionSpeed.noDuplicates,
+  );
+  bool _handled = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_handled) {
+      return;
+    }
+    final barcode = capture.barcodes.firstOrNull;
+    final value = (barcode?.displayValue ?? barcode?.rawValue ?? '').trim();
+    if (value.isEmpty) {
+      return;
+    }
+    _handled = true;
+    Navigator.of(context).pop(value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Scan Asset ID'),
+        backgroundColor: Colors.black,
+      ),
+      body: MobileScanner(
+        controller: _controller,
+        onDetect: _onDetect,
+      ),
     );
   }
 }

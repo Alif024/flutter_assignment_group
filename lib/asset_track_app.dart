@@ -206,7 +206,8 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
           onOpenDetail: (assetCode) =>
               _navigateToPage(_AppPage.details, selectedAssetCode: assetCode),
           onOpenDashboard: () => _navigateToPage(_AppPage.dashboard),
-          onAddAsset: () => _navigateToPage(_AppPage.addAsset),
+          onAddAsset: () =>
+              _navigateToPage(_AppPage.addAsset, clearSelectedAssetCode: true),
           onOpenProfile: () => _navigateToPage(_AppPage.profile),
         );
       case _AppPage.profile:
@@ -216,7 +217,8 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
           employeeId: _currentEmployeeId,
           onOpenDashboard: () => _navigateToPage(_AppPage.dashboard),
           onOpenSearch: () => _navigateToPage(_AppPage.search),
-          onAddAsset: () => _navigateToPage(_AppPage.addAsset),
+          onAddAsset: () =>
+              _navigateToPage(_AppPage.addAsset, clearSelectedAssetCode: true),
           onLogout: () =>
               _navigateToPage(_AppPage.login, clearSelectedAssetCode: true),
         );
@@ -231,7 +233,8 @@ class _AssetTrackShellState extends State<_AssetTrackShell> {
       onOpenDetail: (assetCode) {
         _navigateToPage(_AppPage.details, selectedAssetCode: assetCode);
       },
-      onAddAsset: () => _navigateToPage(_AppPage.addAsset),
+      onAddAsset: () =>
+          _navigateToPage(_AppPage.addAsset, clearSelectedAssetCode: true),
       onScanQr: () => _navigateToPage(_AppPage.scanQr),
       onOpenSearch: () => _navigateToPage(_AppPage.search),
       onOpenProfile: () => _navigateToPage(_AppPage.profile),
