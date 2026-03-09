@@ -16,6 +16,7 @@ class ProfilePage extends StatelessWidget {
     required this.onOpenSearch,
     required this.onAddAsset,
     required this.onLogout,
+    this.showAddTab = true,
   });
 
   final FirestoreRepository repository;
@@ -24,6 +25,7 @@ class ProfilePage extends StatelessWidget {
   final VoidCallback onOpenSearch;
   final VoidCallback onAddAsset;
   final VoidCallback onLogout;
+  final bool showAddTab;
 
   Future<void> _showEditProfileDialog(
     BuildContext context,
@@ -257,7 +259,7 @@ class ProfilePage extends StatelessWidget {
                   ),
                   bottomNavigationBar: BottomNavigationBar(
                     type: BottomNavigationBarType.fixed,
-                    currentIndex: 3,
+                    currentIndex: showAddTab ? 3 : 2,
                     selectedItemColor: Colors.black,
                     unselectedItemColor: Colors.black,
                     onTap: (index) {
@@ -265,28 +267,43 @@ class ProfilePage extends StatelessWidget {
                         onOpenDashboard();
                       } else if (index == 1) {
                         onOpenSearch();
-                      } else if (index == 2) {
+                      } else if (showAddTab && index == 2) {
                         onAddAsset();
                       }
                     },
-                    items: const [
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.home),
-                        label: 'Home',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.search),
-                        label: 'Search',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.add),
-                        label: 'Add',
-                      ),
-                      BottomNavigationBarItem(
-                        icon: Icon(Icons.person),
-                        label: 'Profile',
-                      ),
-                    ],
+                    items: showAddTab
+                        ? const [
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.home),
+                              label: 'Home',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.search),
+                              label: 'Search',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.add),
+                              label: 'Add',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.person),
+                              label: 'Profile',
+                            ),
+                          ]
+                        : const [
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.build_circle_outlined),
+                              label: 'Repairs',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.qr_code_scanner),
+                              label: 'Scan',
+                            ),
+                            BottomNavigationBarItem(
+                              icon: Icon(Icons.person),
+                              label: 'Profile',
+                            ),
+                          ],
                   ),
                 );
               },

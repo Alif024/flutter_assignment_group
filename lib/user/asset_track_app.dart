@@ -111,6 +111,7 @@ class _UserAssetTrackShellState extends State<UserAssetTrackShell> {
           onOpenSearch: () => _goTo(_UserPage.scan),
           onAddAsset: () {},
           onLogout: widget.onLogout,
+          showAddTab: false,
         );
     }
   }
