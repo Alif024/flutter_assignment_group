@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/buttons/outlined_btn_icon.dart';
@@ -328,6 +330,8 @@ class _AssetDetailsPageState extends State<AssetDetailsPage> {
           );
         }
 
+        final displayImageUrl = _resolveAssetImageUrl(asset.imageUrl);
+
         return Scaffold(
           backgroundColor: const Color(0xFFE5E7EB),
           appBar: AppTopBar(
@@ -346,20 +350,7 @@ class _AssetDetailsPageState extends State<AssetDetailsPage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(16),
-                    child: Image.network(
-                      asset.imageUrl.isNotEmpty
-                          ? asset.imageUrl
-                          : 'https://images.unsplash.com/photo-1593642634367-d91a135587b5?w=1200',
-                      height: 280,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 280,
-                        color: const Color(0xFFD1D5DB),
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.laptop_mac, size: 56),
-                      ),
-                    ),
+                    child: _buildAssetImage(displayImageUrl),
                   ),
                   const SizedBox(height: 16),
                   SurfaceCard(
@@ -542,6 +533,86 @@ class _AssetDetailsPageState extends State<AssetDetailsPage> {
 
     final month = months[date.month - 1];
     return '$month ${date.day}, ${date.year}';
+  }
+
+  String _resolveAssetImageUrl(String rawUrl) {
+    const fallbackUrl =
+        'https://images.unsplash.com/photo-1593642634367-d91a135587b5?w=1200';
+
+    final trimmed = rawUrl.trim();
+    if (trimmed.isEmpty) {
+      return fallbackUrl;
+    }
+
+    final uri = Uri.tryParse(trimmed);
+    if (uri == null) {
+      return fallbackUrl;
+    }
+
+    final host = uri.host.toLowerCase();
+    if (!host.contains('drive.google.com')) {
+      return trimmed;
+    }
+
+    final fileId = _extractGoogleDriveFileId(uri);
+    if (fileId == null || fileId.isEmpty) {
+      return trimmed;
+    }
+
+    return 'https://drive.google.com/uc?export=view&id=$fileId';
+  }
+
+  Widget _buildAssetImage(String imageUrl) {
+    final uri = Uri.tryParse(imageUrl);
+    final isNetwork = uri != null &&
+        (uri.scheme.toLowerCase() == 'http' || uri.scheme.toLowerCase() == 'https');
+
+    if (isNetwork) {
+      return Image.network(
+        imageUrl,
+        height: 280,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
+      );
+    }
+
+    final file = File(imageUrl);
+    if (!file.existsSync()) {
+      return _buildImageFallback();
+    }
+
+    return Image.file(
+      file,
+      height: 280,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
+    );
+  }
+
+  Widget _buildImageFallback() {
+    return Container(
+      height: 280,
+      color: const Color(0xFFD1D5DB),
+      alignment: Alignment.center,
+      child: const Icon(Icons.laptop_mac, size: 56),
+    );
+  }
+
+  String? _extractGoogleDriveFileId(Uri uri) {
+    final idFromQuery = uri.queryParameters['id'];
+    if (idFromQuery != null && idFromQuery.trim().isNotEmpty) {
+      return idFromQuery.trim();
+    }
+
+    final segments = uri.pathSegments;
+    final fileSegmentIndex = segments.indexOf('d');
+    if (fileSegmentIndex != -1 && fileSegmentIndex + 1 < segments.length) {
+      return segments[fileSegmentIndex + 1].trim();
+    }
+
+    return null;
   }
 }
 

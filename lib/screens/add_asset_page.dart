@@ -6,6 +6,7 @@ import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart'
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AddAssetPage extends StatefulWidget {
   const AddAssetPage({
@@ -43,6 +44,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
   ];
 
   String _selectedType = 'laptop';
+  String _selectedImageUrl = '';
   bool _isSaving = false;
 
   @override
@@ -88,7 +90,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
           description: description,
           location: location.isEmpty ? 'Unknown Location' : location,
           status: 'normal',
-          imageUrl: '',
+          imageUrl: _selectedImageUrl,
           purchaseDate: now,
           assignedTo: widget.actorEmployeeId,
           createdAt: now,
@@ -117,6 +119,12 @@ class _AddAssetPageState extends State<AddAssetPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _handleImageSelected(XFile? file) {
+    setState(() {
+      _selectedImageUrl = file?.path.trim() ?? '';
+    });
   }
 
   @override
@@ -161,6 +169,7 @@ class _AddAssetPageState extends State<AddAssetPage> {
                       height: 200,
                       title: 'Tap to upload image',
                       subtitle: 'JPG, PNG or JPEG (max. 5MB)',
+                      onImageSelected: _handleImageSelected,
                       onTap: () {},
                     ),
                   ],

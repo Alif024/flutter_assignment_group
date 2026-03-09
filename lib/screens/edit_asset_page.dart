@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_assignment_group/components/buttons/filled_btn_icon.dart';
 import 'package:flutter_assignment_group/components/cards/surface_card.dart';
+import 'package:flutter_assignment_group/components/cards/upload_img_card.dart';
 import 'package:flutter_assignment_group/components/inputs/input_text_icon.dart';
 import 'package:flutter_assignment_group/components/layout/app_top_bar.dart';
 import 'package:flutter_assignment_group/data/firestore_repository.dart';
 import 'package:flutter_assignment_group/models/asset_record.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditAssetPage extends StatefulWidget {
   const EditAssetPage({
@@ -27,6 +29,7 @@ class EditAssetPage extends StatefulWidget {
 }
 
 class _EditAssetPageState extends State<EditAssetPage> {
+  final UploadImgCardController _uploadImgController = UploadImgCardController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -40,6 +43,7 @@ class _EditAssetPageState extends State<EditAssetPage> {
   ];
   String _selectedType = 'laptop';
   String _status = 'normal';
+  String _imageUrl = '';
   bool _isSaving = false;
   bool _initialized = false;
 
@@ -62,7 +66,14 @@ class _EditAssetPageState extends State<EditAssetPage> {
     _locationController.text = asset.location;
     _selectedType = asset.type.isEmpty ? 'other' : asset.type;
     _status = asset.status;
+    _imageUrl = asset.imageUrl.trim();
     _initialized = true;
+  }
+
+  void _handleImageSelected(XFile? file) {
+    setState(() {
+      _imageUrl = file?.path.trim() ?? _imageUrl;
+    });
   }
 
   Future<void> _saveAsset(AssetRecord current) async {
@@ -82,6 +93,7 @@ class _EditAssetPageState extends State<EditAssetPage> {
           location: _locationController.text.trim(),
           type: _selectedType,
           status: _status,
+          imageUrl: _imageUrl,
         ),
         actorEmployeeId: widget.actorEmployeeId,
       );
@@ -144,32 +156,35 @@ class _EditAssetPageState extends State<EditAssetPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Asset Image',
-                          style: TextStyle(
-                            fontSize: 20 / 1.5,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF111827),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.network(
-                            asset.imageUrl.isNotEmpty
-                                ? asset.imageUrl
-                                : 'https://images.unsplash.com/photo-1593642634367-d91a135587b5?w=1200',
-                            width: double.infinity,
-                            height: 220,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Container(
-                                  height: 220,
-                                  color: const Color(0xFFD1D5DB),
-                                  alignment: Alignment.center,
-                                  child: const Icon(Icons.laptop_mac, size: 56),
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Asset Image',
+                                style: TextStyle(
+                                  fontSize: 20 / 1.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF111827),
                                 ),
-                          ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Take photo',
+                              onPressed: () {
+                                _uploadImgController.pickFromCamera();
+                              },
+                              icon: const Icon(Icons.photo_camera_outlined),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        UploadImgCard(
+                          controller: _uploadImgController,
+                          height: 220,
+                          title: 'Tap to upload image',
+                          subtitle: 'JPG, PNG or JPEG (max. 5MB)',
+                          initialImageUrl: _imageUrl,
+                          onImageSelected: _handleImageSelected,
                         ),
                       ],
                     ),

@@ -18,6 +18,7 @@ class UploadImgCard extends StatefulWidget {
     this.onTap,
     this.onImageSelected,
     this.onPickError,
+    this.initialImageUrl,
     this.title = 'Tap to upload image',
     this.subtitle = 'JPG, PNG or JPEG (max. 5MB)',
     this.height = 260,
@@ -32,6 +33,7 @@ class UploadImgCard extends StatefulWidget {
   final VoidCallback? onTap;
   final ValueChanged<XFile?>? onImageSelected;
   final ValueChanged<String>? onPickError;
+  final String? initialImageUrl;
   final String title;
   final String subtitle;
   final double height;
@@ -166,96 +168,7 @@ class _UploadImgCardState extends State<UploadImgCard> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(22),
-                    child: _selectedImageFile != null
-                        ? Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color: const Color(0xFFC9D5E6),
-                                    width: 1.3,
-                                  ),
-                                  color: const Color(0xFFF0F4FA),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(13),
-                                  child: Image.file(
-                                    File(_selectedImageFile!.path),
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                              Align(
-                                alignment: Alignment.topRight,
-                                child: Container(
-                                  margin: const EdgeInsets.all(10),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color.fromRGBO(0, 0, 0, 0.55),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Text(
-                                    'Change',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _isPicking
-                                      ? SizedBox(
-                                          width: 38,
-                                          height: 38,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 3,
-                                            color: widget.iconColor,
-                                          ),
-                                        )
-                                      : Icon(
-                                          Icons.cloud_upload_rounded,
-                                          size: 52,
-                                          color: widget.iconColor,
-                                        ),
-                                  const SizedBox(height: 18),
-                                  Text(
-                                    widget.title,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFF182033),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    widget.subtitle,
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w400,
-                                      color: Color(0xFF182033),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                    child: _buildCardContent(),
                   ),
                 ),
               ),
@@ -280,6 +193,193 @@ class _UploadImgCardState extends State<UploadImgCard> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildCardContent() {
+    final hasSelectedImage = _selectedImageFile != null;
+    final hasInitialImage = (widget.initialImageUrl?.trim().isNotEmpty ?? false);
+
+    if (hasSelectedImage) {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(
+            margin: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: const Color(0xFFC9D5E6),
+                width: 1.3,
+              ),
+              color: const Color(0xFFF0F4FA),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(13),
+              child: _buildPreviewImage(),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: Container(
+              margin: const EdgeInsets.all(10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: const Color.fromRGBO(0, 0, 0, 0.55),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Change',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (hasInitialImage)
+          Opacity(
+            opacity: 0.2,
+            child: _buildInitialImageBackground(),
+          ),
+        _buildUploadPrompt(),
+      ],
+    );
+  }
+
+  Widget _buildUploadPrompt() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _isPicking
+                ? SizedBox(
+                    width: 38,
+                    height: 38,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      color: widget.iconColor,
+                    ),
+                  )
+                : Icon(
+                    Icons.cloud_upload_rounded,
+                    size: 52,
+                    color: widget.iconColor,
+                  ),
+            const SizedBox(height: 18),
+            Text(
+              widget.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF182033),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              widget.subtitle,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w400,
+                color: Color(0xFF182033),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInitialImageBackground() {
+    final initialImageUrl = widget.initialImageUrl?.trim() ?? '';
+    if (initialImageUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final uri = Uri.tryParse(initialImageUrl);
+    final isNetwork = uri != null &&
+        (uri.scheme.toLowerCase() == 'http' || uri.scheme.toLowerCase() == 'https');
+
+    if (isNetwork) {
+      return Image.network(
+        initialImageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+      );
+    }
+
+    final localFile = File(initialImageUrl);
+    if (!localFile.existsSync()) {
+      return const SizedBox.shrink();
+    }
+
+    return Image.file(
+      localFile,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildPreviewImage() {
+    final selectedImageFile = _selectedImageFile;
+    if (selectedImageFile != null) {
+      return Image.file(
+        File(selectedImageFile.path),
+        fit: BoxFit.contain,
+      );
+    }
+
+    final initialImageUrl = widget.initialImageUrl?.trim() ?? '';
+    if (initialImageUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final uri = Uri.tryParse(initialImageUrl);
+    final isNetwork = uri != null &&
+        (uri.scheme.toLowerCase() == 'http' || uri.scheme.toLowerCase() == 'https');
+
+    if (isNetwork) {
+      return Image.network(
+        initialImageUrl,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Center(
+            child: Icon(Icons.broken_image_outlined, color: Color(0xFF64748B)),
+          );
+        },
+      );
+    }
+
+    final localFile = File(initialImageUrl);
+    if (!localFile.existsSync()) {
+      return const Center(
+        child: Icon(Icons.broken_image_outlined, color: Color(0xFF64748B)),
+      );
+    }
+
+    return Image.file(
+      localFile,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        return const Center(
+          child: Icon(Icons.broken_image_outlined, color: Color(0xFF64748B)),
+        );
+      },
     );
   }
 }
